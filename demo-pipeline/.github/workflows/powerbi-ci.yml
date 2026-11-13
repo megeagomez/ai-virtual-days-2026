@@ -1,0 +1,145 @@
+# DevOps conversacional → DevOps clásico.
+# Pipeline generada por el agente con ayuda del MCP PowerBiDeploymentMCP:
+# los nombres de entornos, workspaces, proyecto y rebinds salen de env-list / project-show,
+# no de la imaginación del modelo.
+name: powerbi-ci
+
+on:
+  pull_request:
+    paths: ["powerbi/**", "tests/**", "ci/**", ".github/**"]
+  push:
+    branches: [main]
+    paths: ["powerbi/**", "tests/**", "ci/**", ".github/**"]
+  workflow_dispatch:
+    inputs:
+      confirm_drift:
+        description: "Sobrescribir aunque haya drift (solo tras revisar qué cambió a mano)"
+        type: boolean
+        default: false
+      update_golden:
+        description: "Regenerar los resultados dorados de las consultas DAX"
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write   # OIDC → azure/login, sin secretos guardados
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+  PBI_PROJECT: Ventas
+  PBI_MODEL: Ventas
+  PBI_REPORT: Ventas
+  CI_WORKSPACE: "Ventas [CI]"                 # workspace de pruebas, fuera de la cadena de promoción
+  SYNTHETIC_SEED: "20261107"
+  POWERBI_MCP_DB_PATH: ${{ github.workspace }}\.pbi-state\metadata.duckdb
+
+jobs:
+  # ───────────────────────── 1. Validar en un workspace CI con dato sintético ─────────────────────────
+  validate:
+    runs-on: windows-latest                    # la caché de tokens del MCP usa DPAPI (Windows)
+    timeout-minutes: 30
+    concurrency: { group: powerbi-ci-workspace, cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pbi
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+      - name: Dato sintético determinista
+        run: python ci/synthetic/generate.py --seed $env:SYNTHETIC_SEED --rows 6000 --out build/synthetic
+
+      - name: Inyectar el dato sintético en el modelo (sin orígenes, sin gateway, sin credenciales)
+        run: python ci/synthetic/inline_into_tmdl.py --model powerbi/$env:PBI_MODEL.SemanticModel --data build/synthetic --out build/ci
+
+      - name: Desplegar modelo e informe en el workspace CI (MCP CLI)
+        run: |
+          python tools/pbimcp/pbi_cli.py upload-model  "$env:CI_WORKSPACE" "build/ci/$env:PBI_MODEL.SemanticModel" --name $env:PBI_MODEL
+          python tools/pbimcp/pbi_cli.py upload-report "$env:CI_WORKSPACE" "powerbi/$env:PBI_REPORT.Report" --name $env:PBI_REPORT --rebind $env:PBI_MODEL
+
+      - name: Refrescar el modelo y esperar
+        run: python ci/pbi_rest.py refresh --workspace "$env:CI_WORKSPACE" --dataset $env:PBI_MODEL --timeout 900
+
+      - name: Regresión de consultas DAX (resultados dorados)
+        run: |
+          $extra = if ("${{ inputs.update_golden }}" -eq "true") { "--update-golden" } else { "" }
+          python ci/dax_regression.py --workspace "$env:CI_WORKSPACE" --dataset $env:PBI_MODEL --tests tests/dax --golden tests/golden $extra
+
+      - name: Cuadre de datos contra el oráculo (DuckDB sobre el mismo CSV sintético)
+        run: python ci/reconcile.py --workspace "$env:CI_WORKSPACE" --dataset $env:PBI_MODEL --data build/synthetic --spec tests/reconcile.yaml
+
+      - name: Publicar evidencias
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-${{ github.run_id }}
+          path: |
+            build/reports/
+            tests/golden/
+
+  # ───────────────────────── 2. Desplegar en Desarrollo (cadena real) ─────────────────────────
+  deploy-dev:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: windows-latest
+    environment: desarrollo
+    permissions: { id-token: write, contents: write }
+    concurrency: { group: powerbi-state, cancel-in-progress: false }   # la DB DuckDB no admite escrituras concurrentes
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { ref: pbi-state, path: .pbi-state }
+      - uses: ./.github/actions/setup-pbi
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+      - name: deploy → Desarrollo
+        run: python tools/pbimcp/pbi_cli.py deploy $env:PBI_PROJECT Desarrollo powerbi --respect-local-structure
+      - name: Guardar estado del MCP
+        if: always()
+        run: ./ci/save_state.ps1 -Message "deploy Desarrollo · run $env:GITHUB_RUN_ID"
+
+  # ───────────────────────── 3. Promocionar a Integración ─────────────────────────
+  promote-int:
+    needs: deploy-dev
+    runs-on: windows-latest
+    environment: integracion
+    permissions: { id-token: write, contents: write }
+    concurrency: { group: powerbi-state, cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { ref: pbi-state, path: .pbi-state }
+      - uses: ./.github/actions/setup-pbi
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+      - name: promote → Integracion (para si hay drift)
+        run: ./ci/promote_gate.ps1 -Project $env:PBI_PROJECT -Environment Integracion -ConfirmDrift:$${{ inputs.confirm_drift || false }}
+      - name: Guardar estado del MCP
+        if: always()
+        run: ./ci/save_state.ps1 -Message "promote Integracion · run $env:GITHUB_RUN_ID"
+
+  # ───────────────────────── 4. Promocionar a Producción (con aprobación) ─────────────────────────
+  promote-prod:
+    needs: promote-int
+    runs-on: windows-latest
+    environment: produccion                   # required reviewers en GitHub → aprobación humana
+    permissions: { id-token: write, contents: write }
+    concurrency: { group: powerbi-state, cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { ref: pbi-state, path: .pbi-state }
+      - uses: ./.github/actions/setup-pbi
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+      - name: promote → Produccion (para si hay drift)
+        run: ./ci/promote_gate.ps1 -Project $env:PBI_PROJECT -Environment Produccion -ConfirmDrift:$${{ inputs.confirm_drift || false }}
+      - name: Árbol de despliegue para auditoría
+        run: python tools/pbimcp/pbi_cli.py project-tree $env:PBI_PROJECT >> $env:GITHUB_STEP_SUMMARY
+      - name: Guardar estado del MCP
+        if: always()
+        run: ./ci/save_state.ps1 -Message "promote Produccion · run $env:GITHUB_RUN_ID"

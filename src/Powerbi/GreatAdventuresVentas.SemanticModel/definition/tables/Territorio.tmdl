@@ -1,0 +1,68 @@
+/// Territorios comerciales con su país y gran región (dim_territorio). Es el territorio del pedido, no el del revendedor.
+table Territorio
+	lineageTag: 5458c900-7db0-463f-8958-80c968265ce9
+
+	column IdTerritorio
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: bbe23e00-b0df-434a-95eb-78f8b60d5440
+		summarizeBy: none
+		sourceColumn: IdTerritorio
+
+	/// Territorio comercial del pedido (Northwest, Canada, France…).
+	column Territorio
+		dataType: string
+		lineageTag: 03a7b78b-92e6-43f2-8086-49a9dcd83430
+		summarizeBy: none
+		sourceColumn: Territorio
+
+	column 'Código de país'
+		dataType: string
+		isHidden
+		lineageTag: 6a680896-940d-4b47-bed8-c1865eb9044e
+		summarizeBy: none
+		sourceColumn: CodigoPais
+
+	/// País del territorio comercial.
+	column País
+		dataType: string
+		lineageTag: abbddb04-2696-493c-87ad-6f3980c894fd
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Pais
+
+	/// Gran región: North America, Europe o Pacific.
+	column Grupo
+		dataType: string
+		lineageTag: 02e63e1c-acff-4be2-bb2f-ce4b5e315d4e
+		dataCategory: Continent
+		summarizeBy: none
+		sourceColumn: Grupo
+
+	hierarchy 'Jerarquía de territorio'
+		lineageTag: af1754f1-eb78-4033-810d-616bf896fbe0
+
+		level Grupo
+			lineageTag: efe8876a-cb87-48ee-a10d-8a90df7199cb
+			column: Grupo
+
+		level País
+			lineageTag: b367bce1-e012-4dab-b244-24008e815495
+			column: País
+
+		level Territorio
+			lineageTag: a8d14254-8763-4b36-8848-51db80311f9f
+			column: Territorio
+
+	partition Territorio = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_territorio"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdTerritorio", "Territorio", "CodigoPais", "Pais", "Grupo"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdTerritorio", Int64.Type}, {"Territorio", type text}, {"CodigoPais", type text}, {"Pais", type text}, {"Grupo", type text}})
+				in
+					#"Tipos aplicados"
+

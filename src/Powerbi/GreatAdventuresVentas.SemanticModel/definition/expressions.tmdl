@@ -1,0 +1,12 @@
+/// Endpoint SQL del workspace (el mismo para todos sus lakehouses).
+expression 'Servidor SQL gold' = "j37vtja52ffuhjxwdfrkhefhse-bbxa3i7kkd5u5imm2tfkwe6ouu.datawarehouse.fabric.microsoft.com" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 1420f69f-c1be-4d38-a528-dfb650e1881e
+
+	annotation PBI_ResultType = Text
+
+/// Lakehouse del que se importa el modelo.
+expression 'Base de datos gold' = "gold" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f515f8a5-337d-4763-aeb1-a0db909cb5e3
+
+	annotation PBI_ResultType = Text
+

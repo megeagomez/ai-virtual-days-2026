@@ -1,0 +1,19 @@
+# Power BI Desktop: caché local y ajustes de usuario (nunca a Git)
+**/.pbi/cache.abf
+**/.pbi/localSettings.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Salidas locales
+build/
+tools/
+.pbi-state/
+.powerbi-mcp-deployment/
+
+# Office / sistema
+~$*
+Thumbs.db
+.DS_Store

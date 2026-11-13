@@ -1,0 +1,73 @@
+/// Revendedores (tiendas y distribuidores) con la ubicación de su oficina principal (dim_revendedor). Son los clientes del canal.
+table Revendedor
+	lineageTag: e81570ba-0567-426b-9c64-ed3dc704d17f
+
+	column IdRevendedor
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 6edb3074-6572-4dad-99cb-9c4dc0f3ef00
+		summarizeBy: none
+		sourceColumn: IdRevendedor
+
+	/// Nombre de la tienda o distribuidor que compra a la empresa.
+	column Revendedor
+		dataType: string
+		lineageTag: 68304c7d-e4f5-419c-a487-fa8fa4c252b5
+		summarizeBy: none
+		sourceColumn: Revendedor
+
+	/// Ciudad de la oficina principal del revendedor.
+	column Ciudad
+		dataType: string
+		lineageTag: 0bd65934-c319-4799-9ac1-b6e1975ae899
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: Ciudad
+
+	/// Estado o provincia de la oficina principal.
+	column Provincia
+		dataType: string
+		lineageTag: 220c8b9b-37fb-492d-b26b-4641fd792fd3
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: Provincia
+
+	/// País de la oficina principal del revendedor.
+	column País
+		dataType: string
+		lineageTag: bac56277-0e36-4be5-9078-7f17bf83af86
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Pais
+
+	hierarchy 'Ubicación del revendedor'
+		lineageTag: ec20c3e3-a887-4ecd-a20e-65dd4b8c47b3
+
+		level País
+			lineageTag: 3430387f-0c20-41e5-a48a-7d47bea8a3e9
+			column: País
+
+		level Provincia
+			lineageTag: dfd13f02-c329-44f5-9210-dca7983165e6
+			column: Provincia
+
+		level Ciudad
+			lineageTag: 83fc0287-6073-4328-977a-4bd680e6cb5c
+			column: Ciudad
+
+		level Revendedor
+			lineageTag: f4b50a11-ab93-46fd-b7e2-a8729b529dc3
+			column: Revendedor
+
+	partition Revendedor = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_revendedor"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdRevendedor", "Revendedor", "Ciudad", "Provincia", "Pais"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdRevendedor", Int64.Type}, {"Revendedor", type text}, {"Ciudad", type text}, {"Provincia", type text}, {"Pais", type text}})
+				in
+					#"Tipos aplicados"
+

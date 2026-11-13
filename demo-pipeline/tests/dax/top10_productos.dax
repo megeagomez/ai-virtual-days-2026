@@ -1,0 +1,2 @@
+EVALUATE
+TOPN ( 10, SUMMARIZECOLUMNS ( Productos[producto], "Ventas", [Ventas] ), [Ventas], DESC, Productos[producto], ASC )

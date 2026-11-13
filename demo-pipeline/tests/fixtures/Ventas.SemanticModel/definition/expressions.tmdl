@@ -1,0 +1,35 @@
+expression Src_Clientes =
+		let
+			Origen = Sql.Database(Servidor, BaseDatos),
+			Tabla = Origen{[Schema="dbo",Item="Clientes"]}[Data]
+		in
+			Tabla
+	lineageTag: 0b6f3a1e-0000-4000-8000-000000000001
+
+	annotation PBI_ResultType = Table
+
+expression Src_Productos =
+		let
+			Origen = Sql.Database(Servidor, BaseDatos),
+			Tabla = Origen{[Schema="dbo",Item="Productos"]}[Data]
+		in
+			Tabla
+	lineageTag: 0b6f3a1e-0000-4000-8000-000000000002
+
+	annotation PBI_ResultType = Table
+
+expression Src_Ventas =
+		let
+			Origen = Sql.Database(Servidor, BaseDatos),
+			Tabla = Origen{[Schema="dbo",Item="Ventas"]}[Data]
+		in
+			Tabla
+	lineageTag: 0b6f3a1e-0000-4000-8000-000000000003
+
+	annotation PBI_ResultType = Table
+
+expression Servidor = "sql-prod.contoso.local" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 0b6f3a1e-0000-4000-8000-000000000004
+
+expression BaseDatos = "Ventas" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 0b6f3a1e-0000-4000-8000-000000000005

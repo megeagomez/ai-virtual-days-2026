@@ -1,0 +1,6 @@
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Fecha'[Año], 'Fecha'[Mes], Productos[categoria],
+    "Ventas", [Ventas],
+    "Margen %", [Margen %]
+)

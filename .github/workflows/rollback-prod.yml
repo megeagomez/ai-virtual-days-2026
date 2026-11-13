@@ -1,0 +1,56 @@
+# Volver a una versión concreta: redespliega el PBIP tal como estaba en una Release prod-*.
+# Actions → rollback-prod → Run workflow → version = prod-AAAAMMDD-HHMMSS
+# (lista de versiones: pestaña Releases, o `gh release list`)
+name: rollback-prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag de la versión a restaurar (prod-AAAAMMDD-HHMMSS)"
+        required: true
+      target:
+        description: "Entorno donde restaurarla"
+        type: choice
+        options: [prod, dev]
+        default: prod
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  PYTHONUTF8: "1"
+  PBI_NAME: GreatAdventuresVentas
+
+jobs:
+  rollback:
+    runs-on: windows-latest
+    environment: ${{ inputs.target }}
+    concurrency: { group: "pbi-${{ inputs.target }}", cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4                 # workflow y scripts actuales (main)
+      - name: PBIP de la versión ${{ inputs.version }}
+        uses: actions/checkout@v4
+        with: { ref: "${{ inputs.version }}", path: restore }
+      - uses: ./.github/actions/pbi-cli
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Redesplegar ${{ inputs.version }}
+        shell: pwsh
+        run: |
+          $ws = if ("${{ inputs.target }}" -eq "prod") { "${{ vars.PBI_WS_PROD || 'AIVD Ventas PROD' }}" } else { "${{ vars.PBI_WS_DEV || 'AIVD Ventas DEV' }}" }
+          ./ci/deploy.ps1 -Workspace $ws -PbipDir restore/src/Powerbi -Name $env:PBI_NAME
+          "WS=$ws" >> $env:GITHUB_ENV
+      - name: Dejar constancia del rollback como nueva versión
+        if: inputs.target == 'prod'
+        shell: pwsh
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          $tag = "prod-" + (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmmss")
+          $sha = git -C restore rev-parse HEAD
+          gh release create $tag --target $sha --title "PROD $tag · ROLLBACK a ${{ inputs.version }}" `
+            --notes "Rollback de **$env:WS** a la versión ``${{ inputs.version }}`` (commit $sha) por $env:GITHUB_ACTOR."
+          "### ↩️ $env:WS restaurado a ``${{ inputs.version }}``  → registrado como ``$tag``" >> $env:GITHUB_STEP_SUMMARY

@@ -1,0 +1,52 @@
+name: pbi-cli
+description: >
+  Instala el CLI de PowerBiDeploymentMCP, inicia sesión en Entra ID con el app registration
+  (OIDC sin secretos, o secreto como alternativa) y deja el CLI autenticado vía az_cli
+  (nunca cae a Device Flow, así que el job no se queda esperando a un humano).
+inputs:
+  client-id:      { required: true,  description: "Client ID del app registration (PyUploader)" }
+  tenant-id:      { required: true,  description: "Tenant de Entra ID" }
+  client-secret:  { required: false, default: "", description: "Opcional. Si viene vacío se usa OIDC (credencial federada)" }
+  mcp-ref:
+    required: false
+    # v0.2.3 — fija siempre un SHA: la pipeline no debe cambiar porque alguien haga push al MCP
+    default: e1e0df073e44c374dbcf2b2a0e280f66a9acc606
+    description: "Tag o SHA de megeagomez/PowerBiDeploymentMCP"
+runs:
+  using: composite
+  steps:
+    - name: Descargar el CLI del MCP
+      uses: actions/checkout@v4
+      with:
+        repository: megeagomez/PowerBiDeploymentMCP
+        ref: ${{ inputs.mcp-ref }}
+        path: tools/pbimcp
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: pip
+        cache-dependency-path: tools/pbimcp/requirements.txt
+
+    - name: Dependencias del CLI
+      shell: pwsh
+      run: python -m pip install --disable-pip-version-check -q -r tools/pbimcp/requirements.txt
+
+    - name: Login Entra ID (OIDC, sin secretos)
+      if: inputs.client-secret == ''
+      uses: azure/login@v2
+      with:
+        client-id: ${{ inputs.client-id }}
+        tenant-id: ${{ inputs.tenant-id }}
+        allow-no-subscriptions: true
+
+    - name: Login Entra ID (secreto de cliente)
+      if: inputs.client-secret != ''
+      shell: pwsh
+      env:
+        AZ_CLIENT_SECRET: ${{ inputs.client-secret }}
+      run: az login --service-principal -u "${{ inputs.client-id }}" -t "${{ inputs.tenant-id }}" -p $env:AZ_CLIENT_SECRET --allow-no-subscriptions --output none
+
+    - name: Autenticar el CLI reutilizando la sesión az
+      shell: pwsh
+      run: python tools/pbimcp/pbi_cli.py auth --method az_cli

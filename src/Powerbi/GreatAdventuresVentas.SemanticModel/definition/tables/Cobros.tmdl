@@ -1,0 +1,180 @@
+/// Cobros de los pedidos de revendedor (fact_cobros): uno por pedido, con vencimiento, fecha de pago (vacía si está pendiente), importe con portes e impuestos y método de pago. No se relaciona con Fecha: la deuda se calcula a la fecha de corte.
+table Cobros
+	lineageTag: 92bae978-90ed-48c4-abfd-90120a9d1342
+
+	/// Importe de los cobros vencidos (FechaVencimiento <= fecha de corte) y sin pagar a la fecha de corte (FechaPago vacía o posterior). Fecha de corte = último día del contexto de fecha. El día del pago ya no se debe.
+	measure 'Deuda vencida pendiente' =
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda
+		lineageTag: a97c2b6f-b795-404d-94c2-a72c05deda83
+
+	/// Número de facturas vencidas y sin pagar a la fecha de corte. Mismas reglas que Deuda vencida pendiente.
+	measure 'Facturas vencidas pendientes' =
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					COUNTROWS('Cobros'),
+					'Cobros'[FechaVencimiento] <= _corte,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+		formatString: #,##0
+		displayFolder: Cobros y deuda
+		lineageTag: 4b33d8ae-53e5-424b-a6f8-cb00ee2354c0
+
+	/// Importe de los cobros cuya fecha de pago cae dentro del periodo seleccionado (flujo: lo cobrado en el mes, trimestre o año).
+	measure 'Importe cobrado' =
+			VAR _inicio = MIN('Fecha'[Fecha])
+			VAR _fin = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaPago] >= _inicio,
+					'Cobros'[FechaPago] <= _fin
+				)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda
+		lineageTag: 7045b90a-ddc2-451a-aabe-0c5441beaddc
+
+	/// Deuda vencida más la que aún no ha vencido, sin pagar a la fecha de corte. Como no hay fecha de factura, se consideran emitidas las facturas que vencen como mucho 90 días después del corte (el plazo máximo de pago). Es una aproximación.
+	measure 'Deuda pendiente total' =
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte + 90,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda
+		lineageTag: 9206ef8f-4d8f-4eb1-953b-943eda5bf761
+
+	/// Deuda vencida pendiente repartida por antigüedad: días desde el vencimiento hasta la fecha de corte (el día del vencimiento es 0), con los límites de cada tramo incluidos. Usa la tabla Tramo de antigüedad como eje, leyenda o filtro. Sumando todos los tramos da Deuda vencida pendiente.
+	measure 'Deuda vencida por tramo' =
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				SUMX(
+					VALUES('Tramo de antigüedad'[IdTramo]),
+					VAR _desde = CALCULATE(MAX('Tramo de antigüedad'[Días desde]))
+					VAR _hasta = CALCULATE(MAX('Tramo de antigüedad'[Días hasta]))
+					RETURN
+						CALCULATE(
+							SUM('Cobros'[Importe]),
+							'Cobros'[FechaVencimiento] <= _corte - _desde,
+							OR(ISBLANK(_hasta), 'Cobros'[FechaVencimiento] >= _corte - _hasta),
+							OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+						)
+				)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+		lineageTag: d3208a34-a9a8-4cb3-9a6e-be823e6adc93
+
+	/// Deuda vencida pendiente con una antigüedad de 0–30 días a la fecha de corte (tramo 1 de la tabla Tramo de antigüedad).
+	measure 'Deuda 0–30 días' = CALCULATE([Deuda vencida por tramo], 'Tramo de antigüedad'[IdTramo] = 1)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+		lineageTag: 72f0a6ae-a614-4b3f-822a-4d43def35a0a
+
+	/// Deuda vencida pendiente con una antigüedad de 31–60 días a la fecha de corte (tramo 2 de la tabla Tramo de antigüedad).
+	measure 'Deuda 31–60 días' = CALCULATE([Deuda vencida por tramo], 'Tramo de antigüedad'[IdTramo] = 2)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+		lineageTag: d20a840e-4fe5-451f-910f-386149f3c738
+
+	/// Deuda vencida pendiente con una antigüedad de 61–90 días a la fecha de corte (tramo 3 de la tabla Tramo de antigüedad).
+	measure 'Deuda 61–90 días' = CALCULATE([Deuda vencida por tramo], 'Tramo de antigüedad'[IdTramo] = 3)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+		lineageTag: d93f729c-836d-4353-9606-aaa105f9d456
+
+	/// Deuda vencida pendiente con una antigüedad de más de 90 días a la fecha de corte (tramo 4 de la tabla Tramo de antigüedad).
+	measure 'Deuda más de 90 días' = CALCULATE([Deuda vencida por tramo], 'Tramo de antigüedad'[IdTramo] = 4)
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+		lineageTag: 0f42129f-4ed5-4fad-a421-a41a9f4a14f6
+
+	/// Identificador del cobro (C-<pedido>; TEST-001 es la factura de prueba).
+	column IdCobro
+		dataType: string
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: fc78e723-1cbc-4802-82c5-62c878bd75db
+		summarizeBy: none
+		sourceColumn: IdCobro
+
+	/// Pedido de venta cobrado.
+	column IdPedido
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 39abaa8a-6f8f-4a56-82da-0902e5086934
+		summarizeBy: sum
+		sourceColumn: SalesOrderID
+
+		annotation SummarizationSetBy = Automatic
+
+	column FechaVencimiento
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		isAvailableInMdx: false
+		lineageTag: a63b70e6-fe88-4a0e-b733-9c946e6bcefb
+		summarizeBy: none
+		sourceColumn: FechaVencimiento
+
+		variation Variación
+			isDefault
+			relationship: f0856c99-aca4-4377-aa4e-8895137655f8
+			defaultHierarchy: LocalDateTable_0e5851db-5fdb-410e-951b-6052d1166bfb.'Jerarquía de fechas'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column FechaPago
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		isAvailableInMdx: false
+		lineageTag: c2b8a48b-e30e-4672-ba2c-7c75a8758bfc
+		summarizeBy: none
+		sourceColumn: FechaPago
+
+		variation Variación
+			isDefault
+			relationship: 4e6753f3-2a3c-4774-ab63-ff5700052d40
+			defaultHierarchy: LocalDateTable_cb0cf706-d676-4bbf-987a-76e0a246c3c4.'Jerarquía de fechas'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Importe
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 5a63cd51-9d71-43a0-a527-b53f6850b3e0
+		summarizeBy: sum
+		sourceColumn: Importe
+
+	column MetodoPago
+		dataType: string
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 3801839d-458d-477d-b757-69b7af45d02d
+		summarizeBy: none
+		sourceColumn: MetodoPago
+
+	partition Cobros = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "fact_cobros"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdCobro", "SalesOrderID", "FechaVencimiento", "FechaPago", "Importe", "MetodoPago"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdCobro", type text}, {"SalesOrderID", Int64.Type}, {"FechaVencimiento", type date}, {"FechaPago", type date}, {"Importe", Currency.Type}, {"MetodoPago", type text}})
+				in
+					#"Tipos aplicados"
+

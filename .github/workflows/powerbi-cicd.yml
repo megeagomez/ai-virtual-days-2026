@@ -1,0 +1,114 @@
+# Power BI CI/CD con el CLI de PowerBiDeploymentMCP
+#
+#   push a dev            → validar → desplegar en  AIVD Ventas DEV
+#   pull request a main   → validar → "plan": qué hay ahora en PROD y qué se va a reemplazar
+#   merge en main         → validar → desplegar en  AIVD Ventas PROD → Release prod-AAAAMMDD-HHMMSS
+#
+# main está sellada: solo entra código por PR con el check "validate" en verde,
+# así que "push a main" solo ocurre al hacer merge de un PR.
+name: powerbi-cicd
+
+on:
+  push:
+    branches: [dev, main]
+    paths: ["src/Powerbi/**", "ci/**", ".github/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # OIDC → Entra ID, sin secretos
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+  PBIP_DIR: src/Powerbi
+  PBI_NAME: GreatAdventuresVentas
+  WS_DEV: ${{ vars.PBI_WS_DEV || 'AIVD Ventas DEV' }}
+  WS_PROD: ${{ vars.PBI_WS_PROD || 'AIVD Ventas PROD' }}
+
+jobs:
+  # ─────────────────────────── 1. Validación offline (sin Power BI) ───────────────────────────
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Validar PBIP
+        run: python ci/validate_pbip.py "$PBIP_DIR" "$PBI_NAME"
+
+  # ─────────────────────────── 2. PR a main: plan contra PROD ───────────────────────────
+  plan-prod:
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: windows-latest            # la caché de tokens del MCP usa DPAPI → Windows
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: ./.github/actions/pbi-cli
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Qué hay ahora en PROD (se reemplazará al hacer merge)
+        shell: pwsh
+        run: |
+          python tools/pbimcp/pbi_cli.py contents "$env:WS_PROD"
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Cambios del PR en el PBIP
+        shell: pwsh
+        run: |
+          $diff = git diff --stat origin/main...HEAD -- $env:PBIP_DIR
+          "### Plan de despliegue a PROD`n`nAl hacer merge se publicará **$env:PBI_NAME** en **$env:WS_PROD**.`n`n``````text`n$($diff -join "`n")`n``````" >> $env:GITHUB_STEP_SUMMARY
+
+  # ─────────────────────────── 3. Push a dev → DEV ───────────────────────────
+  deploy-dev:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    needs: validate
+    runs-on: windows-latest
+    environment: dev
+    concurrency: { group: pbi-dev, cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pbi-cli
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Desplegar en DEV
+        shell: pwsh
+        run: ./ci/deploy.ps1 -Workspace "$env:WS_DEV" -PbipDir $env:PBIP_DIR -Name $env:PBI_NAME
+      - name: Resumen
+        shell: pwsh
+        run: '"### ✅ DEV actualizado`n`n**$env:WS_DEV** ← ``$env:GITHUB_SHA`` ($env:GITHUB_ACTOR)" >> $env:GITHUB_STEP_SUMMARY'
+
+  # ─────────────────────────── 4. Merge en main → PROD + Release ───────────────────────────
+  deploy-prod:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: windows-latest
+    environment: prod
+    concurrency: { group: pbi-prod, cancel-in-progress: false }
+    permissions: { id-token: write, contents: write }   # contents: write → tag + release
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pbi-cli
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Desplegar en PROD
+        shell: pwsh
+        run: ./ci/deploy.ps1 -Workspace "$env:WS_PROD" -PbipDir $env:PBIP_DIR -Name $env:PBI_NAME
+      - name: Versionar lo desplegado (tag + Release con el PBIP)
+        shell: pwsh
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          $tag = "prod-" + (Get-Date).ToUniversalTime().ToString("yyyyMMdd-HHmmss")
+          $zip = "$env:PBI_NAME-$tag.zip"
+          Compress-Archive -Path "$env:PBIP_DIR/*" -DestinationPath $zip
+          $msg = git log -1 --pretty=format:"%s"
+          $notes = "Desplegado en **$env:WS_PROD** por $env:GITHUB_ACTOR`n`nCommit: $env:GITHUB_SHA`n`n> $msg`n`n[Ejecución]($env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID)"
+          gh release create $tag $zip --target $env:GITHUB_SHA --title "PROD $tag · $msg" --notes $notes
+          "### ✅ PROD actualizado → versión ``$tag```n`nPara volver a ella: *Actions → rollback-prod → version = $tag*" >> $env:GITHUB_STEP_SUMMARY

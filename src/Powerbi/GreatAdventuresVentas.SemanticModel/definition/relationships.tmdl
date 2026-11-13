@@ -1,0 +1,66 @@
+relationship 'Ventas - Fecha'
+	fromColumn: Ventas.FechaPedido
+	toColumn: Fecha.Fecha
+
+relationship 'Ventas - Producto'
+	fromColumn: Ventas.IdProducto
+	toColumn: Producto.IdProducto
+
+relationship 'Ventas - Revendedor'
+	fromColumn: Ventas.IdRevendedor
+	toColumn: Revendedor.IdRevendedor
+
+relationship 'Ventas - Territorio'
+	fromColumn: Ventas.IdTerritorio
+	toColumn: Territorio.IdTerritorio
+
+relationship 'Ventas - Vendedor'
+	fromColumn: Ventas.IdVendedor
+	toColumn: Vendedor.IdVendedor
+
+relationship 'Ventas - Promoción'
+	fromColumn: Ventas.IdPromocion
+	toColumn: Promoción.IdPromocion
+
+relationship 'Cuotas - Fecha'
+	fromColumn: Cuotas.FechaCuota
+	toColumn: Fecha.Fecha
+
+relationship 'Cuotas - Vendedor'
+	fromColumn: Cuotas.IdVendedor
+	toColumn: Vendedor.IdVendedor
+
+relationship 'Cobros - Método de pago'
+	fromColumn: Cobros.MetodoPago
+	toColumn: 'Método de pago'.'Método de pago'
+
+relationship d015f239-c975-4183-a65d-8e87586a040a
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Producto.'Fecha inicio de venta'
+	toColumn: LocalDateTable_6da99685-111b-4645-a0c7-c1250390c447.Date
+
+relationship 63f89c1d-c1f8-459b-bcab-707853c7fad2
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Producto.'Fecha fin de venta'
+	toColumn: LocalDateTable_2ccb66e3-8092-48c0-b4d8-894ef8fd2484.Date
+
+relationship 0b83e081-c4ea-4e23-81e8-4ea60d723a63
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Promoción.'Fecha inicio'
+	toColumn: LocalDateTable_1bce8b77-1438-4f49-ab1a-5291d81e722b.Date
+
+relationship b6a151b3-c534-4aeb-b62b-429c90229ba1
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Promoción.'Fecha fin'
+	toColumn: LocalDateTable_0dcf03f6-1aa5-42e6-afff-ca2aacbb3e21.Date
+
+relationship f0856c99-aca4-4377-aa4e-8895137655f8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Cobros.FechaVencimiento
+	toColumn: LocalDateTable_0e5851db-5fdb-410e-951b-6052d1166bfb.Date
+
+relationship 4e6753f3-2a3c-4774-ab63-ff5700052d40
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Cobros.FechaPago
+	toColumn: LocalDateTable_cb0cf706-d676-4bbf-987a-76e0a246c3c4.Date
+

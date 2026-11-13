@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevOps conversacional</title>
+<link rel="stylesheet" href="theme/aivd.css">
+<style>
+/* ---- Ajustes propios de esta charla ---- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:2.6cqw;height:100%}
+.split.r60{grid-template-columns:.95fr 1.05fr}
+.split>.frame{height:100%}
+.mini h4{margin:0 0 1cqw;font:700 1.15cqw/1 var(--font);text-transform:uppercase;letter-spacing:.04em}
+.mini ul{margin:0;padding-left:1.3cqw;font-size:1.38cqw;line-height:1.45}
+.mini li{margin:.3cqw 0}
+.mini p{font-size:1.38cqw;line-height:1.45;margin:0 0 .8cqw}
+.callout{position:absolute!important;left:5.45cqw;bottom:5.6cqw;width:84cqw;border-left:.3cqw solid var(--cyan);padding:.4cqw 0 .4cqw 1.3cqw;font:400 1.45cqw/1.35 var(--font);color:#DCE7F5}
+.callout b{color:var(--cyan)}
+.grid6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;gap:1.5cqw;height:100%}
+.grid6 .card{min-height:0;padding:1.5cqw 1.7cqw;border-radius:1.8cqw}
+.grid6 .card .num{margin-bottom:.8cqw}
+.grid6 .card h3{font-size:1.55cqw;margin-bottom:.6cqw}
+.grid6 .card p{font-size:1.12cqw;line-height:1.38;margin:0}
+.chain{display:flex;align-items:stretch;gap:.9cqw;height:100%}
+.chain .step{flex:1;position:relative;border:.1cqw solid var(--muted);border-radius:1.6cqw;background:var(--surface);padding:1.5cqw 1.4cqw}
+.chain .step .num{font:700 1.1cqw/1 var(--mono);margin-bottom:1cqw}
+.chain .step h3{font:700 1.6cqw/1.15 var(--font);margin:0 0 .8cqw}
+.chain .step p{font-size:1.15cqw;line-height:1.4;color:var(--soft);margin:0}
+.chain .step code{color:var(--cyan);font-size:1.05cqw}
+.chain .arrow{align-self:center;font:700 2cqw/1 var(--mono);color:var(--muted)}
+.chain .step.hot{border-color:var(--green);box-shadow:0 0 0 .2cqw #7FBA0033 inset}
+.chain .step.human{border-color:var(--orange)}
+.transcript{font:1.18cqw/1.52 var(--mono);color:#D7E3F4;white-space:pre;margin:0}
+.transcript .u{color:#fff;font-weight:700}
+.transcript .u::before{content:'› ';color:var(--orange)}
+.transcript .t{color:var(--cyan)}
+.transcript .r{color:var(--green)}
+.transcript .h{color:var(--yellow)}
+.check-table td:nth-child(2),.check-table td:nth-child(3){font-family:var(--mono);text-align:right;font-weight:400}
+.check-table th:nth-child(2),.check-table th:nth-child(3){text-align:right}
+.repo{font:700 1.5cqw/1 var(--mono);color:var(--cyan)}
+.end-quote{font:700 2.55cqw/1.25 var(--font-display)!important;color:#fff}
+.end-quote em{font-style:normal;color:var(--cyan)}
+.tag-row{display:flex;gap:.6cqw;margin-top:1.2cqw}
+.legend{font:1cqw/1.3 var(--mono);color:var(--soft)}
+</style>
+</head>
+<body data-session-minutes="40" data-qa-minutes="5">
+<div id="zoom-frame"><div id="presentation-container">
+
+<!-- 1 · PORTADA -->
+<section class="slide" data-panel="diag" data-badge="false" data-kicker="Microsoft Speakers Hub en Español" data-kicker-color="green"
+  data-status="mode: agent  ·  deploy: conversational  ·  drift: guarded  ·  tests: green"
+  data-notes="Pregunta de arranque a la sala/chat: ¿cuántos habéis sobrescrito sin querer un informe de producción, o no sabéis qué versión hay publicada ahora mismo? Que lo escriban en el chat.
+
+Dos frases de origen: esto nació de automatizar mi propio trabajo con Fabric y acabó siendo un servidor MCP que cualquier asistente de IA puede usar.
+
+Anuncia la idea fuerza: el futuro del deploy no es «más DevOps», es DevOps conversacional — y al final veremos que lo conversacional también te escribe el DevOps clásico cuando lo necesitas.">
+  <h1 class="cover-ai">AI<br>VIRTUAL DAYS</h1>
+  <div class="cover-edition">2026 EDITION</div>
+  <div class="cover-bar"></div>
+  <p class="cover-tagline">DevOps conversacional: desplegar en Fabric y Power BI hablando con un agente<span>Un servidor MCP para publicar sin miedo… y una pipeline que lo demuestra con tests.</span></p>
+  <div class="cover-meta">Publicar sin miedo · Miguel Egea Gómez</div>
+  <div class="cover-badge"></div>
+  <div class="cover-squares" aria-hidden="true">
+    <i style="left:6cqw;top:0;width:1.2cqw;height:1.2cqw;background:var(--green)"></i>
+    <i style="left:14.2cqw;top:0;width:1.2cqw;height:1.2cqw;background:var(--blue)"></i>
+    <i style="left:3.6cqw;top:1.9cqw;width:1.2cqw;height:1.2cqw;background:var(--cyan)"></i>
+    <i style="left:11.4cqw;top:1.9cqw;width:1.2cqw;height:1.2cqw;background:var(--orange)"></i>
+    <i style="left:0;top:3.75cqw;width:1.2cqw;height:1.2cqw;background:var(--blue)"></i>
+    <i style="left:8.7cqw;top:3.75cqw;width:1.2cqw;height:1.2cqw;background:var(--yellow)"></i>
+    <i style="left:16.5cqw;top:3.75cqw;width:1.2cqw;height:1.2cqw;background:var(--green)"></i>
+    <i style="left:3.3cqw;top:6.2cqw;width:.5cqw;height:.5cqw;background:var(--blue)"></i>
+    <i style="left:8.1cqw;top:6.2cqw;width:.5cqw;height:.5cqw;background:var(--green)"></i>
+    <i style="left:12.9cqw;top:6.2cqw;width:.5cqw;height:.5cqw;background:var(--orange)"></i>
+    <i style="left:17.7cqw;top:6.2cqw;width:.5cqw;height:.5cqw;background:var(--green)"></i>
+  </div>
+</section>
+
+<!-- 2 · PONENTE -->
+<section class="slide" data-kicker="Speaker / ID" data-kicker-color="orange" data-accent-bars="true"
+  data-notes="Presentación breve (20 segundos). Miguel Egea Gómez, Ingeniero Técnico en Informática, Máster en Big Data y Analytics, Technical Lead en Altia. Lo que importa para esta charla: llevo años publicando modelos e informes para clientes y este MCP es la herramienta que me hice para no volver a publicar con miedo.">
+  <h2 class="title">El ponente también es parte del diseño</h2>
+  <p class="subtitle">Datos, IA y despliegues que no dan miedo.</p>
+  <div class="speaker-photo frame brackets" style="border-color:var(--cyan)"><span class="br"></span>ME</div>
+  <h3 class="speaker-name">Miguel Egea Gómez</h3>
+  <div class="speaker-role">Technical Lead @ Altia<br><span style="color:var(--soft);font-weight:400">Ingeniero Técnico en Informática · Máster en Big Data y Analytics</span></div>
+  <div class="speaker-pills pills"><span class="pill b">Power BI</span><span class="pill c">Fabric</span><span class="pill g">MCP</span><span class="pill y">Agents</span></div>
+  <div class="speaker-quote brackets" style="border-color:var(--green)"><span class="br"></span>“Si no lo puedes desplegar sin miedo, todavía no está terminado. Y si para desplegar hace falta saber DevOps, la mitad del equipo nunca lo hará.”</div>
+</section>
+
+<!-- 3 · SPONSORS (oficial, sin cambios) -->
+<section class="slide full-image" data-chrome="none" data-notes="Gracias a los sponsors que hacen posible AI Virtual Days 2026: advancelearning, anessi y tajamar.">
+  <img class="full" src="assets/sponsors-04.jpg" alt="Gracias a nuestros sponsors: advancelearning, anessi, tajamar">
+</section>
+
+<!-- 4 · AGENDA -->
+<section class="slide" data-panel="diag-soft" data-footer="hub" data-kicker="Índice" data-kicker-color="cyan"
+  data-notes="Cuatro bloques. Dos miradas sobre la misma herramienta: negocio y técnica. Y un cierre que conecta lo conversacional con la pipeline clásica de GitHub Actions, con tests de regresión de consultas y cuadre contra dato sintético.">
+  <h2 class="title" style="top:5.2cqw">Índice</h2>
+  <div class="index-rows">
+    <div class="row"><span class="n t-cyan">01</span><span class="h">La idea</span><span class="d">De «publicar y rezar» a DevOps conversacional</span><i class="sq" style="background:var(--blue)"></i></div>
+    <div class="row"><span class="n t-cyan">02</span><span class="h">Mirada de negocio</span><span class="d">«Despliega mi informe a producción» — y que ocurra</span><i class="sq" style="background:var(--cyan)"></i></div>
+    <div class="row"><span class="n t-green">03</span><span class="h">Mirada técnica</span><span class="d">Auth, entornos, workspaces y patrones de un MCP fiable</span><i class="sq" style="background:var(--green)"></i></div>
+    <div class="row"><span class="n t-yellow">04</span><span class="h">Conversación → pipeline</span><span class="d">GitHub Actions, regresión DAX y cuadre con dato sintético</span><i class="sq" style="background:var(--yellow)"></i></div>
+  </div>
+</section>
+
+<!-- 5 · SECCIÓN 01 -->
+<section class="slide" data-kicker="Section / 01" data-kicker-color="yellow"
+  data-notes="Abrimos con el problema. Transición rápida.">
+  <div class="sec-ghost">AI</div>
+  <h2 class="sec-title">DEVOPS CONVERSACIONAL</h2>
+  <p class="sec-sub">Del botón «Publicar» a un ciclo de vida que se pide en lenguaje natural.</p>
+  <div class="slashes" aria-hidden="true"><i style="left:0;background:var(--orange)"></i><i style="left:1.4cqw;background:var(--green)"></i><i style="left:2.8cqw;background:var(--blue)"></i><i style="left:4.2cqw;background:var(--yellow)"></i></div>
+</section>
+
+<!-- 6 · EL PROBLEMA -->
+<section class="slide" data-kicker="Content / Problem" data-kicker-color="orange" data-panel="none"
+  data-status="mode: manual  ·  last deploy: ¿?  ·  version in prod: ¿?  ·  rollback: none"
+  data-notes="El ciclo habitual: diseñas en Desktop, publicas a mano con «Reemplazar» y confías. ¿Qué versión hay en producción? ¿Cuándo se subió? ¿Quién?
+
+Lo que ya ofrece Microsoft es bueno, pero cada opción asume algo: licencia Fabric/Premium para Deployment Pipelines; Git + Azure DevOps o GitHub Actions ya montados para fabric-cicd; saber Python y la API para ir a la REST directa.
+
+Este MCP vive en el hueco entre «Publicar a mano» y «pipeline corporativo completo».">
+  <h2 class="title wide">Publicar y rezar… o montar un DevOps entero</h2>
+  <p class="subtitle" style="width:84cqw">Desktop → «Reemplazar» → ¿qué versión hay en producción? ¿cuándo se subió? ¿quién la tocó?</p>
+  <div class="body wide" style="top:16cqw">
+    <table class="t">
+      <thead><tr><th>Solución</th><th>Qué hace bien</th><th>Qué te exige antes de empezar</th></tr></thead>
+      <tbody>
+        <tr><td>Publicar en Desktop</td><td>Inmediato</td><td class="ko">Nada… y nada te protege</td></tr>
+        <tr><td>Deployment Pipelines</td><td>Promoción visual entre etapas</td><td>Capacidad Fabric / Premium</td></tr>
+        <tr><td>fabric-cicd</td><td>CI/CD oficial desde Git</td><td>Git + Azure DevOps o GitHub Actions ya montados</td></tr>
+        <tr><td>REST / pyfabricops</td><td>Control total</td><td>Python y conocer la API</td></tr>
+        <tr class="me"><td class="hl">Este MCP</td><td>Entornos, promoción, drift, histórico</td><td class="ok">Un agente y tus permisos de siempre</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 7 · QUÉ ES UN MCP -->
+<section class="slide" data-kicker="Architecture" data-kicker-color="cyan" data-panel="none"
+  data-status="mode: agent  ·  protocol: MCP  ·  tools: 32  ·  permissions: yours"
+  data-notes="Un MCP (Model Context Protocol) es un protocolo abierto que deja que un asistente ejecute funciones reales y deterministas. El agente no inventa el despliegue: llama a una tool, y la tool llama a la misma API REST que llamaría un script.
+
+Clave de confianza: si tú no tienes permisos de colaborador en el workspace, el agente tampoco. El MCP se autentica con TU identidad.
+
+Este servidor expone 32 tools, 7 resources y 6 prompts. Funciona con Claude Desktop, GitHub Copilot en VS Code o cualquier cliente MCP.">
+  <h2 class="title wide">Qué es (y qué no es) un MCP</h2>
+  <p class="subtitle">Menos magia, más recorrido: cada frase acaba en una llamada REST concreta.</p>
+  <div class="body wide" style="top:14.5cqw;height:31cqw">
+    <svg class="diagram" viewBox="0 0 1628 600" role="img" aria-label="Usuario, agente, servidor MCP, API REST y workspaces conectados en línea">
+      <rect x="40" y="262" width="1548" height="56" rx="10" fill="#12304F" stroke="#23557F"/>
+      <line class="flow" x1="120" y1="290" x2="1500" y2="290" stroke="#3E5D81" stroke-width="4"/>
+      <circle r="9" fill="#fff" opacity=".9"><animateMotion dur="3.2s" repeatCount="indefinite" path="M120 290 H1500"/></circle>
+      <g>
+        <line x1="130" y1="190" x2="130" y2="262" stroke="#F25022" stroke-width="2"/><circle cx="130" cy="290" r="46" fill="#F25022"/>
+        <rect x="20" y="40" width="220" height="150" rx="6" fill="none" stroke="#F25022"/><text class="lbl" x="130" y="88" text-anchor="middle" fill="#F25022" style="fill:#F25022">TÚ</text><text class="sub" x="130" y="124" text-anchor="middle">«Sube el proyecto</text><text class="sub" x="130" y="150" text-anchor="middle">al workspace Test»</text>
+      </g>
+      <g>
+        <line x1="467" y1="336" x2="467" y2="410" stroke="#0078D4" stroke-width="2"/><circle cx="467" cy="290" r="46" fill="#0078D4"/>
+        <rect x="337" y="410" width="260" height="150" rx="6" fill="none" stroke="#0078D4"/><text class="lbl" x="467" y="458" text-anchor="middle" style="fill:#2B9BFF">AGENTE</text><text class="sub" x="467" y="494" text-anchor="middle">Claude · Copilot ·</text><text class="sub" x="467" y="520" text-anchor="middle">cualquier cliente MCP</text>
+      </g>
+      <g>
+        <line x1="814" y1="190" x2="814" y2="262" stroke="#7FBA00" stroke-width="2"/><circle cx="814" cy="290" r="46" fill="#7FBA00"/>
+        <rect x="674" y="40" width="280" height="150" rx="6" fill="none" stroke="#7FBA00"/><text class="lbl" x="814" y="88" text-anchor="middle" style="fill:#7FBA00">MCP SERVER</text><text class="sub" x="814" y="124" text-anchor="middle">32 tools · 7 resources</text><text class="sub" x="814" y="150" text-anchor="middle">6 prompts · estado DuckDB</text>
+      </g>
+      <g>
+        <line x1="1161" y1="336" x2="1161" y2="410" stroke="#FFB900" stroke-width="2"/><circle cx="1161" cy="290" r="46" fill="#FFB900"/>
+        <rect x="1021" y="410" width="280" height="150" rx="6" fill="none" stroke="#FFB900"/><text class="lbl" x="1161" y="458" text-anchor="middle" style="fill:#FFB900">API REST</text><text class="sub" x="1161" y="494" text-anchor="middle">Fabric · Power BI</text><text class="sub" x="1161" y="520" text-anchor="middle">getDefinition · updateDefinition</text>
+      </g>
+      <g>
+        <line x1="1500" y1="190" x2="1500" y2="262" stroke="#00BCF2" stroke-width="2"/><circle cx="1500" cy="290" r="46" fill="#00BCF2"/>
+        <rect x="1380" y="40" width="240" height="150" rx="6" fill="none" stroke="#00BCF2"/><text class="lbl" x="1500" y="88" text-anchor="middle" style="fill:#00BCF2">WORKSPACES</text><text class="sub" x="1500" y="124" text-anchor="middle">modelos · informes</text><text class="sub" x="1500" y="150" text-anchor="middle">con TUS permisos</text>
+      </g>
+    </svg>
+  </div>
+  <div class="callout" style="bottom:4.6cqw">No inventa nada: <b>llama a la misma API que llamaría un script</b>. Si tú no puedes publicar en ese workspace, el agente tampoco.</div>
+</section>
+
+<!-- 8 · TESIS -->
+<section class="slide" data-kicker="Key idea" data-kicker-color="green" data-panel="diag-soft" data-footer="hub"
+  data-notes="La tesis de la charla en tres líneas. Antes: para desplegar con garantías necesitabas más DevOps — YAML, agentes de build, licencias. Ahora: pides lo que quieres y el agente ejecuta tools deterministas. Lo que no negociamos: trazabilidad, entornos, detección de drift y auditoría. Eso es lo que hace que no sea una demo bonita.">
+  <h2 class="title">La tesis</h2>
+  <div class="body wide terminal" style="top:13.4cqw;height:34cqw;width:85cqw">
+    <p class="k t-orange">antes</p><p class="v">Desplegar con garantías = más DevOps: YAML, agentes, licencias.</p>
+    <p class="k t-cyan">ahora</p><p class="v">Pides en lenguaje natural; el agente ejecuta tools deterministas.</p>
+    <p class="k t-green">innegociable</p><p class="v">Trazabilidad, entornos, drift y auditoría. Siempre.</p>
+  </div>
+</section>
+
+<!-- 9 · CAPÍTULO 02 -->
+<section class="slide" data-kicker="Chapter 02" data-kicker-color="cyan"
+  data-notes="Primera mirada: quien no programa. Analista o power user que domina Desktop y no quiere aprender a programar. Su dolor: publicar a mano sin saber si «Reemplazar» rompe algo, y sin histórico.">
+  <div class="chap-num">02</div>
+  <h2 class="chap-title">MIRADA DE NEGOCIO</h2>
+  <p class="chap-sub">«Despliega mi informe a producción»… y que ocurra de verdad, con trazabilidad y control.</p>
+  <div class="rings" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
+</section>
+
+<!-- 10 · DEMO 1 -->
+<section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
+  data-status="mode: agent  ·  tool: upload_semantic_model  ·  op: updated  ·  data: intact"
+  data-notes="DEMO 1 (≈5 min) en Claude Desktop.
+Prepara: workspace «Ventas Demo» con modelo e informe Ventas publicados y con datos; D:\Demo\Ventas con el .pbip abierto en Desktop; copia «después» con la medida Margen % por si el tiempo aprieta. Workspace «Test» con ModeloVentas y el informe suelto D:\Demo\DashboardVentas.Report.
+
+1. Enseña el informe publicado con cifras: esto es el «antes».
+2. Pide listar workspaces con Demo y el contenido de Ventas Demo.
+3. En Desktop añade Margen % y guarda (o usa la copia «después»).
+4. Pide subir el proyecto. Antes de refrescar el portal pregunta: ¿alguien cree que esto acaba de borrar los datos?
+5. Refresca: la medida aparece y las filas siguen ahí.
+6. Rebind: sube un informe suelto y enlázalo a un modelo de OTRO workspace. Di en voz alta: mismo tool, distintos caminos de API.">
+  <h2 class="title" style="top:5.6cqw">Demo · publicar hablando</h2>
+  <div class="live-main window"><span class="wtitle">claude-desktop · powerbi-mcp</span>
+<pre class="transcript"><span class="u">Lista los workspaces que tengan 'Demo' en el nombre</span>
+  <span class="t">⚙ list_workspaces</span>
+<span class="u">¿Qué hay publicado en Ventas Demo?</span>
+  <span class="t">⚙ get_workspace_contents</span> → modelo Ventas · informe Ventas
+  <span class="h">✎ Desktop: nueva medida «Margen %» · guardar .pbip</span>
+<span class="u">Sube el proyecto de D:\Demo\Ventas a Ventas Demo</span>
+  <span class="t">⚙ upload_semantic_model</span> → operation: "updated"
+  <span class="t">⚙ upload_report</span>         → operation: "updated"
+  <span class="r">✓ medida nueva visible · filas cargadas intactas</span>
+<span class="u">Sube D:\Demo\DashboardVentas.Report a «Informes» y</span>
+<span class="u">enlázalo a ModeloVentas del workspace Test</span>
+  <span class="t">⚙ upload_report(rebind_to_model, rebind_workspace_name)</span>
+  <span class="r">✓ definition.pbir parcheado → apunta al modelo correcto</span></pre>
+  </div>
+  <div class="live-side"><h4>No olvidar</h4>
+    <ul><li>enseñar el «antes»</li><li>¿borró los datos?</li><li>refrescar el portal</li><li>rebind entre workspaces</li></ul>
+    <div class="foot">watch → explain → prove</div></div>
+</section>
+
+<!-- 11 · QUÉ PASÓ POR DEBAJO -->
+<section class="slide" data-kicker="Architecture" data-kicker-color="green" data-panel="none"
+  data-status="mode: agent  ·  POST items/{id}/updateDefinition  ·  refresh: none  ·  rows: kept"
+  data-notes="Lo que pasó: upload_semantic_model sobre un proyecto PBIP que ya existe llama a updateDefinition. Sustituye la DEFINICIÓN (tablas, columnas, medidas, relaciones, TMDL) pero no ejecuta carga ni borrado. Lo que hay en caché en modo Import sigue tal cual del último refresh. En Direct Lake ni siquiera hay datos dentro del modelo.
+
+Matiz: si quitas una tabla, deja de estar accesible en el siguiente refresh; la llamada no toca filas.
+
+PBIX es otro camino (Import API): sube el binario y, si el nombre existe, por defecto crea un dataset en paralelo. Descarga: solo PBIP para modelos. Informes: PBIR o JSON legacy, nunca .pbix suelto.">
+  <h2 class="title wide">¿Qué acaba de pasar por debajo?</h2>
+  <p class="subtitle">Mismo tool, distinto camino de API según el formato.</p>
+  <div class="body wide" style="top:14.6cqw;height:32cqw">
+    <svg class="diagram" viewBox="0 0 1628 615" role="img" aria-label="Flujo de upload_semantic_model según formato pbip o pbix">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5E86B5"/></marker></defs>
+      <rect x="0" y="40" width="300" height="120" rx="22" fill="#0C1D34" stroke="#F25022"/><text class="lbl" x="150" y="92" text-anchor="middle">Prompt</text><text class="sub" x="150" y="126" text-anchor="middle">«Sube el proyecto…»</text>
+      <rect x="380" y="40" width="330" height="120" rx="22" fill="#0C1D34" stroke="#7FBA00"/><text class="mono" x="545" y="92" text-anchor="middle">upload_semantic_model</text><text class="sub" x="545" y="126" text-anchor="middle">detecta formato</text>
+      <path class="flow" d="M300 100 H372" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+      <rect x="800" y="0" width="420" height="120" rx="22" fill="#0C1D34" stroke="#00BCF2"/><text class="lbl" x="1010" y="48" text-anchor="middle">.pbip / TMDL</text><text class="mono" x="1010" y="86" text-anchor="middle">POST items/{id}/updateDefinition</text>
+      <rect x="800" y="170" width="420" height="120" rx="22" fill="#0C1D34" stroke="#FFB900"/><text class="lbl" x="1010" y="218" text-anchor="middle">.pbix</text><text class="mono" x="1010" y="256" text-anchor="middle" style="fill:#FFB900">Import API (binario)</text>
+      <path class="flow" d="M710 90 C760 90 760 60 792 60" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+      <path class="flow" d="M710 120 C760 120 760 230 792 230" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+      <rect x="1290" y="0" width="338" height="120" rx="22" fill="#10291F" stroke="#7FBA00"/><text class="lbl" x="1459" y="48" text-anchor="middle" style="fill:#7FBA00">Definición nueva</text><text class="sub" x="1459" y="84" text-anchor="middle">sin refresh · filas intactas</text>
+      <rect x="1290" y="170" width="338" height="120" rx="22" fill="#2A1A0C" stroke="#F25022"/><text class="lbl" x="1459" y="218" text-anchor="middle" style="fill:#F25022">Ojo: nombre repetido</text><text class="sub" x="1459" y="254" text-anchor="middle">dataset nuevo en paralelo</text>
+      <path class="flow" d="M1220 60 H1282" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+      <path class="flow" d="M1220 230 H1282" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar)"/>
+      <rect x="0" y="380" width="1628" height="200" rx="26" fill="#081C34" stroke="#23557F"/>
+      <text class="lbl" x="40" y="430" style="fill:#00BCF2">upload_report · PBIR</text>
+      <text class="sub" x="40" y="470">El informe se sube sin su .SemanticModel hermano. Con rebind_to_model (y rebind_workspace_name)</text>
+      <text class="sub" x="40" y="502">el MCP parchea definition.pbir para que apunte al modelo correcto, aunque viva en otro workspace.</text>
+      <text class="sub" x="40" y="548" style="fill:#7F9BBE">Descarga de modelos: solo PBIP · informes: PBIR o JSON legacy · un informe nunca viaja como .pbix suelto</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 12 · TRAZABILIDAD -->
+<section class="slide" data-kicker="Key idea" data-kicker-color="blue" data-panel="none"
+  data-status="mode: agent  ·  tool: query_deployments  ·  audit: on  ·  portal access: not needed"
+  data-notes="Para negocio, control sin abrir el portal: «muéstrame el historial de despliegues de WS Prod» (query_deployments), «¿cuándo se descargó por última vez ModeloVentas y a qué ruta?» (query_version_history), «haz copia de seguridad de WS Prod en D:\Backups» (download_workspace). Todo queda registrado en la base de datos local del MCP.">
+  <h2 class="title">Control sin abrir el portal</h2>
+  <p class="subtitle">Tres preguntas que cualquiera puede hacer — y que antes requerían a alguien de plataforma.</p>
+  <div class="cards">
+    <div class="card c-orange brackets" style="border-color:var(--orange)"><span class="br"></span><div class="num t-orange">01</div><h3>Historial</h3><p>«¿Qué se subió a WS Prod, cuándo y con qué ID?»</p><p><code>query_deployments</code></p></div>
+    <div class="card c-blue brackets" style="border-color:var(--blue)"><span class="br"></span><div class="num t-blue">02</div><h3>Versiones</h3><p>«¿Cuándo se descargó ModeloVentas y a qué ruta?»</p><p><code>query_version_history</code></p></div>
+    <div class="card c-green brackets" style="border-color:var(--green)"><span class="br"></span><div class="num t-green">03</div><h3>Backup</h3><p>«Copia de seguridad completa de WS Prod en D:\Backups»</p><p><code>download_workspace</code></p></div>
+  </div>
+</section>
+
+<!-- 12b · DEMO AGÉNTICA CON vs SIN MCP -->
+<section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
+  data-status="mode: agent  ·  same prompt  ·  A: powerbi-mcp  ·  B: az + REST (no MCP)"
+  data-notes="DEMO agéntica (≈8 min). Guion completo y prompts para copiar: demos/GUION-DEMOS.md (Demo 1).
+Mismo prompt, mismo PBIP (src/Powerbi), dos workspaces vacíos: «AIVD Demo Agente MCP» y «AIVD Demo Agente sin MCP».
+1. Lanza primero el agente SIN MCP (Claude Code con --strict-mcp-config y config vacía): tarda más, así que corre mientras hablas.
+2. Lanza el agente CON MCP: 2-3 tool calls y listo.
+3. Cuenta en voz alta lo que el agente sin MCP tiene que descubrir: token de Fabric, partes en base64 sin .platform ni .pbi, operaciones largas (202 + sondeo), reescribir definition.pbir de byPath a byConnection.
+4. Pregunta a los dos: «¿qué se ha desplegado hoy en ese workspace?». Con MCP: query_deployments. Sin MCP: no hay registro.
+Plan B si el agente sin MCP se atasca: ./demos/sin-mcp/deploy-rest.ps1 (enséñalo: ~100 líneas para lo que el MCP hace en una tool).">
+  <h2 class="title" style="top:5.6cqw">Demo · mismo encargo, con y sin MCP</h2>
+  <div class="live-main window"><span class="wtitle">claude · mismo prompt · dos agentes</span>
+<pre class="transcript"><span class="u">Publica el PBIP de src\Powerbi en «AIVD Demo Agente …»</span>
+<span class="u">y deja el informe enlazado al modelo de ese workspace</span>
+<span class="h">── A · con powerbi-mcp ──────────────────────────────</span>
+  <span class="t">⚙ upload_semantic_model</span> → created
+  <span class="t">⚙ upload_report(rebind_to_model)</span> → created · enlazado
+  <span class="t">⚙ query_deployments</span> → quién, cuándo, desde dónde
+<span class="h">── B · sin MCP (az + API REST) ───────────────────────</span>
+  <span class="t">▶ az account get-access-token · GET /workspaces</span>
+  <span class="t">▶ empaquetar partes base64 · ¿.platform? ¿.pbi?</span>
+  <span class="t">▶ POST /items → 202 → sondear la operación…</span>
+  <span class="e" style="color:var(--orange)">✗ informe: byPath no vale en el servicio → byConnection</span>
+  <span class="e" style="color:var(--orange)">✗ «¿qué se desplegó hoy?» → no queda registro</span></pre>
+  </div>
+  <div class="live-side"><h4>Marcador</h4>
+    <ul><li>tiempo hasta publicado</li><li>nº de llamadas</li><li>errores y reintentos</li><li>¿queda historial?</li><li>¿lo repetiría igual mañana?</li></ul>
+    <div class="foot">demos/GUION-DEMOS.md · Demo 1</div></div>
+</section>
+
+<!-- 12c · RESULTADO CON vs SIN MCP -->
+<section class="slide" data-kicker="Data / Compare" data-kicker-color="cyan" data-panel="none"
+  data-notes="Cierre de la demo agéntica. El agente sin MCP puede llegar, pero improvisa: cada vez escribe un script distinto, con tus credenciales en la terminal y sin dejar rastro. El MCP convierte la misma intención en tools deterministas, con historial y con los mismos permisos que tú. La idea fuerza: el MCP no hace al modelo más listo, le quita trabajo que no debería estar improvisando.">
+  <h2 class="title wide">Mismo prompt, dos agentes</h2>
+  <div class="body wide" style="top:12.6cqw">
+    <table class="t">
+      <thead><tr><th>Criterio</th><th>Agente sin MCP</th><th>Agente con powerbi-mcp</th></tr></thead>
+      <tbody>
+        <tr><td>Cómo lo hace</td><td class="wait">Improvisa scripts contra la API REST</td><td class="ok">Tools deterministas: upload_semantic_model, upload_report</td></tr>
+        <tr><td>Lo que tiene que descubrir</td><td class="wait">base64, LRO, .platform, byPath → byConnection</td><td class="ok">Nada: va en la tool</td></tr>
+        <tr><td>Repetible</td><td class="ko">Cada ejecución, un script distinto</td><td class="ok">Mismo resultado cada vez</td></tr>
+        <tr><td>Historial</td><td class="ko">Ninguno</td><td class="ok">query_deployments · query_version_history</td></tr>
+        <tr><td>Siguiente paso</td><td>Copiar el script… y mantenerlo</td><td class="ok">El mismo CLI en GitHub Actions</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 13 · SECCIÓN 03 -->
+<section class="slide" data-kicker="Section / 03" data-kicker-color="green"
+  data-notes="Segunda mirada: perfiles técnicos. Qué hay debajo y por qué es fiable.">
+  <div class="sec-ghost">03</div>
+  <h2 class="sec-title mono">LA ARQUITECTURA DETRÁS</h2>
+  <p class="sec-sub">Device flow, entornos, mapeo de workspaces y los patrones que hacen fiable un MCP.</p>
+  <div class="slashes" aria-hidden="true"><i style="left:0;background:var(--orange)"></i><i style="left:1.4cqw;background:var(--green)"></i><i style="left:2.8cqw;background:var(--blue)"></i><i style="left:4.2cqw;background:var(--yellow)"></i></div>
+</section>
+
+<!-- 14 · AUTENTICACIÓN -->
+<section class="slide" data-kicker="Architecture / Auth" data-kicker-color="cyan" data-panel="none"
+  data-status="mode: auth  ·  chain: cache → silent → az → device  ·  tokens: DPAPI"
+  data-notes="La cadena de autenticación del modo auto: 1) token cifrado con DPAPI en ~/.powerbi-mcp-deployment/cache; 2) renovación silenciosa con MSAL; 3) reutilizar la sesión de az login (AzureCliCredential); 4) device flow: el humano abre el navegador una vez, como en Power BI Desktop.
+
+El paso 3 es el puente a lo desatendido: en un runner de GitHub, azure/login con OIDC deja una sesión az, y el MCP la recoge con --method az_cli. Sin secretos guardados.
+
+Honestidad: existe service_principal_authenticate con client secret en el código, pero no está cableado a una tool. Con OIDC no lo necesitamos. Y hoy es solo Windows porque la caché usa DPAPI.">
+  <h2 class="title wide">Autenticación: una cadena, no un login</h2>
+  <p class="subtitle" style="width:84cqw">Modo <code>auto</code>: prueba de lo más barato a lo más interactivo. El agente nunca ve tu contraseña.</p>
+  <div class="body wide" style="top:15.4cqw;height:21cqw">
+    <div class="chain">
+      <div class="step"><div class="num t-cyan">01</div><h3>Caché DPAPI</h3><p>Token cifrado por Windows en <code>~/.powerbi-mcp-deployment</code></p></div><span class="arrow">→</span>
+      <div class="step"><div class="num t-cyan">02</div><h3>Renovación silenciosa</h3><p>MSAL con el refresh token, sin preguntarte</p></div><span class="arrow">→</span>
+      <div class="step hot"><div class="num t-green">03</div><h3>Sesión az login</h3><p><code>AzureCliCredential</code> · <code>--method az_cli</code></p></div><span class="arrow">→</span>
+      <div class="step human"><div class="num t-orange">04</div><h3>Device flow</h3><p>Código + navegador, una vez, con tu cuenta corporativa</p></div>
+    </div>
+  </div>
+  <div class="callout" style="bottom:5.6cqw;border-color:var(--green)"><b style="color:var(--green)">El paso 03 es el puente a CI:</b> en GitHub Actions, <code>azure/login</code> con OIDC deja una sesión az y el MCP la reutiliza. Sin secretos y sin un humano delante.</div>
+</section>
+
+<!-- 15 · ENTORNOS Y WORKSPACES -->
+<section class="slide" data-kicker="Architecture / Environments" data-kicker-color="yellow" data-panel="none"
+  data-status="mode: chain  ·  stage_order: 1 → 2 → 3  ·  promote: in-memory  ·  deploy: explicit"
+  data-notes="Entornos: un alias libre más un stage_order. El orden es lo único que importa para la cadena. Proyectos: grupos de modelos e informes que se despliegan juntos, con sus rebinds y carpetas.
+
+deploy sube desde disco (para el primer despliegue o un hotfix); promote mueve en memoria lo que hay en la etapa anterior a la siguiente, sin tocar el disco.
+
+Mapeo de workspaces: manual (project-set-workspace, eliges nombres y puedes separar modelos de informes) o automático (project-provision-workspaces: Ventas_semantic_dev, Ventas_reports_dev… sin sufijo en prod). Patrón por capas: los modelos viven junto a su capa de datos (Silver/Gold) y los informes en el workspace de consumo; el rebind entre workspaces lo resuelve el MCP.">
+  <h2 class="title wide">Entornos, proyectos y mapeo de workspaces</h2>
+  <div class="body wide" style="top:11.6cqw;height:35cqw">
+    <svg class="diagram" viewBox="0 0 1628 672" role="img" aria-label="Cadena Desarrollo, Integración, Producción con deploy, promote y hotfix">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5E86B5"/></marker>
+      <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F25022"/></marker></defs>
+      <rect x="0" y="70" width="230" height="110" rx="20" fill="#0C1D34" stroke="#3E5D81" stroke-dasharray="6 6"/><text class="lbl" x="115" y="118" text-anchor="middle">Repo / disco</text><text class="sub" x="115" y="150" text-anchor="middle">.pbip · TMDL · PBIR</text>
+      <rect x="320" y="50" width="330" height="150" rx="22" fill="#0C1D34" stroke="#0078D4"/><text class="lbl" x="485" y="104" text-anchor="middle">Desarrollo</text><text class="mono" x="485" y="140" text-anchor="middle">stage_order 1</text><text class="sub" x="485" y="174" text-anchor="middle">WS Dev</text>
+      <rect x="770" y="50" width="330" height="150" rx="22" fill="#0C1D34" stroke="#7FBA00"/><text class="lbl" x="935" y="104" text-anchor="middle">Integración</text><text class="mono" x="935" y="140" text-anchor="middle">stage_order 2</text><text class="sub" x="935" y="174" text-anchor="middle">WS Integración</text>
+      <rect x="1220" y="50" width="330" height="150" rx="22" fill="#0C1D34" stroke="#FFB900"/><text class="lbl" x="1385" y="104" text-anchor="middle">Producción</text><text class="mono" x="1385" y="140" text-anchor="middle">stage_order 3</text><text class="sub" x="1385" y="174" text-anchor="middle">WS Prod</text>
+      <path class="flow" d="M230 125 H312" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar2)"/><text class="mono" x="271" y="110" text-anchor="middle" style="font-size:17px">deploy</text>
+      <path class="flow" d="M650 125 H762" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar2)"/><text class="mono" x="706" y="110" text-anchor="middle" style="font-size:17px">promote</text>
+      <path class="flow" d="M1100 125 H1212" stroke="#5E86B5" stroke-width="3" fill="none" marker-end="url(#ar2)"/><text class="mono" x="1156" y="110" text-anchor="middle" style="font-size:17px">promote</text>
+      <path d="M115 180 C115 260 1385 270 1385 208" stroke="#F25022" stroke-width="3" fill="none" stroke-dasharray="4 8" marker-end="url(#ar3)"/>
+      <text class="sub" x="760" y="262" text-anchor="middle" style="fill:#F25022">deploy directo a Producción (hotfix) → el siguiente promote detecta drift</text>
+      <rect x="0" y="330" width="790" height="320" rx="26" fill="#081C34" stroke="#23557F"/>
+      <text class="lbl" x="36" y="380" style="fill:#00BCF2">Modo manual</text>
+      <text class="mono" x="36" y="420">project-set-workspace</text>
+      <text class="sub" x="36" y="462">Eliges el nombre de cada workspace por entorno</text>
+      <text class="sub" x="36" y="494">y puedes separar modelos e informes.</text>
+      <text class="sub" x="36" y="548" style="fill:#fff">Patrón por capas: el modelo junto a su capa</text>
+      <text class="sub" x="36" y="580" style="fill:#fff">(Silver/Gold); el informe en el de consumo.</text>
+      <text class="sub" x="36" y="612">El rebind entre workspaces lo hace el MCP.</text>
+      <rect x="838" y="330" width="790" height="320" rx="26" fill="#081C34" stroke="#23557F"/>
+      <text class="lbl" x="874" y="380" style="fill:#7FBA00">Modo automático</text>
+      <text class="mono" x="874" y="420">project-provision-workspaces</text>
+      <text class="mono" x="874" y="474" style="fill:#D7E3F4">Ventas_semantic_dev · Ventas_reports_dev</text>
+      <text class="mono" x="874" y="508" style="fill:#D7E3F4">Ventas_semantic_acc · Ventas_reports_acc</text>
+      <text class="mono" x="874" y="542" style="fill:#D7E3F4">Ventas_semantic     · Ventas_reports</text>
+      <text class="sub" x="874" y="598">Sin sufijo en producción · capacidad opcional</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 16 · DEMO DRIFT -->
+<section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
+  data-status="mode: cli  ·  promote: Producción  ·  drift: DETECTED  ·  overwrite: blocked"
+  data-notes="DEMO 2 (≈4 min), la demo estrella. Mismo flujo desde terminal: cada comando tiene su tool MCP equivalente.
+Prepara: entornos y proyecto ya creados (enseña env-list y project-tree), D:\Proyectos\Ventas con subcarpetas Modelos e Informes.
+
+1. deploy a Desarrollo con --respect-local-structure: replica las carpetas en el workspace.
+2. promote a Integración: en memoria, sin tocar disco.
+3. Simula la urgencia: deploy directo a Producción.
+4. promote a Producción: compara el hash de Producción con lo último promocionado desde Integración, no coincide, y PARA.
+5. Confirma con --yes y enseña project-tree.
+
+Mensaje: nada de esto necesita YAML ni Premium. La disciplina la impone la herramienta, no la memoria de cada uno.">
+  <h2 class="title" style="top:5.6cqw">Demo · promoción y drift</h2>
+  <div class="live-main window"><span class="wtitle">pwsh · pbi_cli.py</span>
+<pre class="transcript"><span class="c" style="color:var(--muted)"># entornos y proyecto ya creados (env-create · project-create)</span>
+<span class="r">$</span> pbi_cli.py deploy  Ventas Desarrollo D:\Proyectos\Ventas --respect-local-structure
+<span class="r">$</span> pbi_cli.py promote Ventas Integración
+<span class="r">$</span> pbi_cli.py deploy  Ventas Producción D:\Proyectos\Ventas   <span style="color:var(--muted)"># hotfix</span>
+<span class="r">$</span> pbi_cli.py promote Ventas Producción
+
+<span class="h">⚠ Divergencia detectada respecto al entorno origen (Integración):</span>
+<span class="h">    [SemanticModel] ModeloVentas:</span>
+<span class="h">      - el último cambio en este entorno fue un 'deploy'</span>
+<span class="h">        directo, no una promoción</span>
+  ¿Confirmas la sobrescritura? [y/N]
+
+<span class="r">$</span> pbi_cli.py promote Ventas Producción --yes
+<span class="r">$</span> pbi_cli.py project-tree Ventas</pre>
+  </div>
+  <div class="live-side"><h4>No olvidar</h4>
+    <ul><li>promote ≠ deploy</li><li>stage_order manda</li><li>leer el drift en voz alta</li><li>chat = CLI</li></ul>
+    <div class="foot">watch → explain → prove</div></div>
+</section>
+
+<!-- 17 · PATRONES -->
+<section class="slide" data-kicker="Key idea / Patterns" data-kicker-color="green" data-panel="none"
+  data-status="mode: design  ·  tools: deterministic  ·  confirm: two-phase  ·  state: owned"
+  data-notes="Los patrones que hacen que un MCP sea fiable en entornos reales, más allá de la demo:
+1. Tools deterministas con esquema, no «haz lo que creas».
+2. Confirmación en dos fases: promote devuelve needs_confirmation y no escribe nada; solo con confirm_drift=true sobrescribe. El agente no puede saltárselo «por iniciativa».
+3. Estado propio: DuckDB con versiones, despliegues, entornos, proyectos y eventos de promoción con hash.
+4. Verbos con intención: promote para el flujo normal, deploy explícito para hotfix.
+5. Resiliencia: reintentos con backoff en las llamadas REST y reintento de bloqueo en la base de datos.
+6. Paridad chat ↔ CLI: cada tool tiene su comando. Lo que haces hablando se puede automatizar — y eso nos lleva al bloque final.">
+  <h2 class="title wide">Patrones de un MCP fiable</h2>
+  <div class="body wide" style="top:11.6cqw;height:36.4cqw">
+    <div class="grid6">
+      <div class="card c-orange"><div class="num t-orange">01</div><h3>Tools deterministas</h3><p>Esquema estricto y resultado estructurado. El modelo elige la tool; la tool decide cómo.</p></div>
+      <div class="card c-blue"><div class="num t-blue">02</div><h3>Confirmación en dos fases</h3><p><code>needs_confirmation</code> → no escribe nada. Solo <code>confirm_drift=true</code> sobrescribe.</p></div>
+      <div class="card c-green"><div class="num t-green">03</div><h3>Estado propio</h3><p>DuckDB: versiones, despliegues, entornos, proyectos y hash de lo promocionado.</p></div>
+      <div class="card c-yellow"><div class="num t-yellow">04</div><h3>Verbos con intención</h3><p><code>promote</code> para el flujo normal; <code>deploy</code> explícito y avisado para hotfix.</p></div>
+      <div class="card"><div class="num t-cyan">05</div><h3>Resiliencia</h3><p>Reintentos con backoff en la REST y reintento de bloqueo en la base de datos.</p></div>
+      <div class="card c-green"><div class="num t-green">06</div><h3>Paridad chat ↔ CLI</h3><p>Cada tool tiene su comando: lo que pides hablando se puede automatizar.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 · CAPÍTULO 04 -->
+<section class="slide" data-kicker="Chapter 04" data-kicker-color="yellow"
+  data-notes="Bloque final. Cuando el equipo crece, quieres que cada cambio pase por un PR, se pruebe solo y llegue a producción con aprobación. La buena noticia: el mismo agente, con el MCP, te escribe esa pipeline — y la puede usar sin Deployment Pipelines de Fabric.">
+  <div class="chap-num" style="color:var(--yellow)">04</div>
+  <h2 class="chap-title">DE LA CONVERSACIÓN A LA PIPELINE</h2>
+  <p class="chap-sub">El agente escribe el DevOps clásico por ti — y el MCP lo ancla a la realidad. Sin Deployment Pipelines de Fabric.</p>
+  <div class="rings" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
+</section>
+
+<!-- 19 · CÓMO AYUDA EL MCP -->
+<section class="slide" data-kicker="Key idea" data-kicker-color="cyan" data-panel="none"
+  data-status="mode: agent  ·  context: env-list, project-show  ·  hallucinated names: 0"
+  data-notes="Por qué el agente escribe una pipeline mejor con el MCP que sin él:
+1. Contexto real: antes de escribir una línea de YAML llama a env-list, project-show y get_deployment_tree. Los nombres de entornos, workspaces, orden de la cadena, carpetas y rebinds salen de ahí, no de la imaginación del modelo.
+2. Verbos deterministas: cada paso del YAML es un comando del CLI que el agente ya ha usado en el chat. Lo que funcionó hablando es lo que se automatiza.
+3. Guardarraíles: el drift se convierte en una puerta de la pipeline; el histórico y project-tree en evidencia de auditoría.
+Además el servidor trae el prompt deployment-pipeline (Dev → Test → Prod con validaciones) como punto de partida.">
+  <h2 class="title wide">Cómo ayuda el MCP al agente a escribir la pipeline</h2>
+  <div class="cards" style="top:14.4cqw">
+    <div class="card c-orange brackets" style="border-color:var(--orange)"><span class="br"></span><div class="num t-orange">01</div><h3>Contexto real</h3><p><code>env-list</code> · <code>project-show</code> · <code>get_deployment_tree</code></p><p>Entornos, workspaces, orden, carpetas y rebinds <b>leídos</b>, no inventados.</p></div>
+    <div class="card c-blue brackets" style="border-color:var(--blue)"><span class="br"></span><div class="num t-blue">02</div><h3>Verbos probados</h3><p><code>deploy</code> · <code>promote</code> · <code>upload-model</code></p><p>Cada paso del YAML es un comando que <b>ya funcionó</b> en el chat.</p></div>
+    <div class="card c-green brackets" style="border-color:var(--green)"><span class="br"></span><div class="num t-green">03</div><h3>Guardarraíles</h3><p><code>needs_confirmation</code> · <code>project-tree</code></p><p>El drift se vuelve <b>puerta</b>; el histórico, <b>evidencia</b> de auditoría.</p></div>
+  </div>
+</section>
+
+<!-- 20 · EL PROMPT -->
+<section class="slide" data-kicker="Key idea / Prompt" data-kicker-color="green" data-panel="diag-soft" data-footer="hub"
+  data-notes="El prompt que uso con Claude Code (con el MCP conectado). Fíjate en que no le doy nombres: le digo de dónde sacarlos. Y le pido criterios de calidad explícitos: sin secretos, que falle si hay drift, que deje evidencias en el resumen del job.">
+  <h2 class="title">El prompt</h2>
+  <div class="body wide terminal" style="top:13.4cqw;height:34cqw;width:85cqw;padding-top:2cqw">
+    <p class="k t-green">context</p><p class="v" style="font-size:1.45cqw">Usa el MCP: lee entornos, el proyecto Ventas y su árbol de despliegue. No inventes nombres.</p>
+    <p class="k t-cyan">task</p><p class="v" style="font-size:1.45cqw">Genera .github/workflows: PR → workspace CI con dato sintético, regresión DAX y cuadre; main → deploy Dev → promote Int → aprobación → promote Prod.</p>
+    <p class="k t-yellow">rules</p><p class="v" style="font-size:1.45cqw">OIDC sin secretos · falla si hay drift · evidencias en el job summary.</p>
+  </div>
+</section>
+
+<!-- 21 · LA PIPELINE -->
+<section class="slide" data-kicker="Architecture / Pipeline" data-kicker-color="yellow" data-panel="none"
+  data-status="mode: ci  ·  runner: windows-latest  ·  auth: oidc → az_cli  ·  fabric pipelines: 0"
+  data-notes="La pipeline resultante. En PR: genera dato sintético con semilla fija, lo inyecta en el modelo, despliega en un workspace CI que está FUERA de la cadena (así el dato sintético nunca viaja con una promoción), refresca, ejecuta la regresión de consultas DAX y el cuadre contra el oráculo.
+
+En main: deploy a Desarrollo desde el repo, promote a Integración, aprobación humana con environments de GitHub, y promote a Producción con la puerta de drift.
+
+Nada de Deployment Pipelines de Fabric ni capacidad Premium: son llamadas REST con la identidad federada del runner.">
+  <h2 class="title wide">La pipeline que genera el agente</h2>
+  <p class="subtitle" style="width:84cqw">GitHub Actions + CLI del MCP. Sin Deployment Pipelines de Fabric, sin secretos guardados.</p>
+  <div class="body wide" style="top:15cqw;height:32cqw">
+    <svg class="diagram" viewBox="0 0 1628 615" role="img" aria-label="Pipeline: validación en PR y promoción en main">
+      <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5E86B5"/></marker></defs>
+      <text class="mono" x="0" y="30" style="fill:#F25022;font-weight:700">PULL REQUEST · job validate</text>
+      <g font-size="20">
+        <rect x="0" y="50" width="250" height="120" rx="20" fill="#0C1D34" stroke="#F25022"/><text class="lbl" x="125" y="100" text-anchor="middle" style="font-size:21px">Dato sintético</text><text class="sub" x="125" y="134" text-anchor="middle">semilla fija</text>
+        <rect x="275" y="50" width="250" height="120" rx="20" fill="#0C1D34" stroke="#F25022"/><text class="lbl" x="400" y="100" text-anchor="middle" style="font-size:21px">Inyectar en TMDL</text><text class="sub" x="400" y="134" text-anchor="middle">Src_* → M inline</text>
+        <rect x="550" y="50" width="250" height="120" rx="20" fill="#0C1D34" stroke="#0078D4"/><text class="lbl" x="675" y="100" text-anchor="middle" style="font-size:21px">Workspace CI</text><text class="sub" x="675" y="134" text-anchor="middle">upload-model/report</text>
+        <rect x="825" y="50" width="250" height="120" rx="20" fill="#0C1D34" stroke="#0078D4"/><text class="lbl" x="950" y="100" text-anchor="middle" style="font-size:21px">Refresh</text><text class="sub" x="950" y="134" text-anchor="middle">REST + espera</text>
+        <rect x="1100" y="50" width="250" height="120" rx="20" fill="#0C1D34" stroke="#7FBA00"/><text class="lbl" x="1225" y="100" text-anchor="middle" style="font-size:21px">Regresión DAX</text><text class="sub" x="1225" y="134" text-anchor="middle">vs dorados</text>
+        <rect x="1375" y="50" width="253" height="120" rx="20" fill="#0C1D34" stroke="#7FBA00"/><text class="lbl" x="1501" y="100" text-anchor="middle" style="font-size:21px">Cuadre</text><text class="sub" x="1501" y="134" text-anchor="middle">vs oráculo DuckDB</text>
+      </g>
+      <path class="flow" d="M250 110 H270 M525 110 H545 M800 110 H820 M1075 110 H1095 M1350 110 H1370" stroke="#5E86B5" stroke-width="3"/>
+      <path d="M1501 170 V240 H125 V300" stroke="#3E5D81" stroke-width="2" fill="none" stroke-dasharray="6 6" marker-end="url(#ar4)"/>
+      <text class="sub" x="813" y="230" text-anchor="middle">merge a main si todo está en verde</text>
+      <text class="mono" x="0" y="290" style="fill:#7FBA00;font-weight:700">MAIN · cadena real</text>
+      <rect x="0" y="310" width="330" height="130" rx="22" fill="#0C1D34" stroke="#0078D4"/><text class="lbl" x="165" y="362" text-anchor="middle">deploy → Desarrollo</text><text class="mono" x="165" y="400" text-anchor="middle">--respect-local-structure</text>
+      <rect x="420" y="310" width="330" height="130" rx="22" fill="#0C1D34" stroke="#7FBA00"/><text class="lbl" x="585" y="362" text-anchor="middle">promote → Integración</text><text class="mono" x="585" y="400" text-anchor="middle">promote_gate.ps1</text>
+      <rect x="840" y="310" width="250" height="130" rx="22" fill="#2A1A0C" stroke="#F25022"/><text class="lbl" x="965" y="362" text-anchor="middle" style="fill:#F25022">Aprobación</text><text class="sub" x="965" y="400" text-anchor="middle">environment produccion</text>
+      <rect x="1180" y="310" width="448" height="130" rx="22" fill="#0C1D34" stroke="#FFB900"/><text class="lbl" x="1404" y="362" text-anchor="middle">promote → Producción</text><text class="mono" x="1404" y="400" text-anchor="middle">drift = puerta cerrada</text>
+      <path class="flow" d="M330 375 H412 M750 375 H832 M1090 375 H1172" stroke="#5E86B5" stroke-width="3"/>
+      <rect x="0" y="490" width="1628" height="110" rx="22" fill="#081C34" stroke="#23557F"/>
+      <text class="sub" x="36" y="535" style="fill:#fff">Cada job: windows-latest (DPAPI) · azure/login OIDC → pbi_cli auth --method az_cli · estado DuckDB en la rama pbi-state</text>
+      <text class="sub" x="36" y="572">concurrency evita dos escrituras a la vez · project-tree al job summary como evidencia de auditoría</text>
+    </svg>
+  </div>
+</section>
+
+<!-- 22 · DATO SINTÉTICO -->
+<section class="slide" data-kicker="Data / Synthetic" data-kicker-color="orange" data-panel="none"
+  data-status="mode: ci  ·  seed: 20261107  ·  data sources: 0  ·  gateway: none  ·  PII: none"
+  data-notes="¿Por qué dato sintético? Porque es determinista (misma semilla, mismos resultados), no tiene datos personales, y conocemos la respuesta correcta de antemano. Además plantamos los casos que suelen romper medidas: 29 de febrero, cambio de año, devoluciones negativas, un cliente que no existe en la dimensión (la famosa fila en blanco) e importes nulos.
+
+El truco: el modelo lee cada tabla de una expresión Src_<Tabla>. En CI sustituimos esas expresiones por el CSV comprimido en base64, el mismo truco que usa «Especificar datos» en Desktop. Resultado: un modelo sin orígenes de datos que se refresca en el servicio sin gateway ni credenciales.">
+  <h2 class="title wide">Dato sintético: la respuesta correcta, de antemano</h2>
+  <div class="body wide" style="top:12.2cqw;height:35cqw">
+    <div class="split r60">
+      <div class="frame mini" style="border-color:var(--orange)">
+        <h4 class="t-orange">Casos plantados a propósito</h4>
+        <ul><li>29/02/2024 y cambio de año</li><li>Devoluciones (cantidad e importe &lt; 0)</li><li>Cliente 9999 que no existe → fila en blanco</li><li>Importes nulos</li><li>Semilla fija → mismos CSV, mismos resultados</li></ul>
+        <h4 class="t-green" style="margin-top:1.6cqw">Contrato del modelo</h4>
+        <p>Cada tabla lee de <code class="hl">Src_&lt;Tabla&gt;</code>. En CI esas expresiones se sustituyen; en producción apuntan al origen real.</p>
+      </div>
+      <div class="window" style="height:100%;padding-top:3.2cqw"><span class="wtitle">expressions.tmdl · CI</span>
+<pre class="code" style="font-size:1.02cqw"><span class="b">expression</span> Src_Ventas =
+    <span class="b">let</span>
+      Fuente = Csv.Document(
+        Binary.Decompress(
+          Binary.FromText(<span class="s">"H4sIAAAAAAAC/3x9…"</span>,
+            BinaryEncoding.Base64),
+          Compression.GZip),
+        [Delimiter=<span class="s">","</span>, Encoding=65001]),
+      Cabeceras = Table.PromoteHeaders(Fuente),
+      Tipado = Table.TransformColumnTypes(…)
+    <span class="b">in</span>
+      Tipado
+
+<span class="c">// sin orígenes de datos → refresh en el servicio</span>
+<span class="c">// sin gateway ni credenciales</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 23 · REGRESIÓN Y CUADRE -->
+<section class="slide" data-kicker="Data / Insight" data-kicker-color="green" data-panel="none"
+  data-status="mode: ci  ·  api: executeQueries  ·  golden: 3/3  ·  oracle: 6/6"
+  data-notes="Dos tipos de prueba, que no son lo mismo:
+Regresión de consultas: cada fichero .dax se ejecuta con la API executeQueries contra el modelo de CI y se compara con su resultado dorado. Dice «esto no ha cambiado». Si cambias una medida a propósito, regeneras el dorado y el cambio queda revisado en el PR.
+Cuadre contra el oráculo: el mismo CSV sintético se carga en DuckDB (la misma base de datos que usa el MCP para su estado) y se calcula en SQL lo que debería dar cada medida. Dice «esto es correcto». Si una medida está mal desde el principio, la regresión no lo ve; el cuadre sí.
+Todo acaba como tabla en el resumen del job.">
+  <h2 class="title wide">Regresión de consultas y cuadre de datos</h2>
+  <p class="subtitle" style="width:84cqw"><b style="color:#fff">Dorado</b> = «no ha cambiado». <b style="color:#fff">Oráculo</b> = «es correcto». Hacen falta los dos.</p>
+  <div class="body wide" style="top:15.4cqw;height:31.6cqw">
+    <div class="split r60">
+      <div class="frame mini" style="border-color:var(--cyan)">
+        <h4 class="t-cyan">tests/dax/*.dax → executeQueries</h4>
+<pre class="code" style="font-size:1.05cqw;margin-bottom:1.2cqw"><span class="b">EVALUATE</span> SUMMARIZECOLUMNS(
+  'Fecha'[Año], Productos[categoria],
+  <span class="s">"Ventas"</span>, [Ventas], <span class="s">"Margen %"</span>, [Margen %])</pre>
+        <h4 class="t-green">tests/reconcile.yaml → DuckDB</h4>
+<pre class="code" style="font-size:1.05cqw"><span class="b">SELECT</span> c.segmento, sum(v.importe)
+<span class="b">FROM</span> ventas v <span class="b">LEFT JOIN</span> clientes c
+  <span class="b">USING</span> (id_cliente) <span class="b">GROUP BY</span> 1</pre>
+      </div>
+      <div class="frame" style="padding:1.4cqw 1.6cqw;border-color:var(--green)">
+        <table class="t check-table" style="font-size:1.15cqw">
+          <thead><tr><th>Comprobación</th><th>Filas</th><th>Máx. Δ</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Ventas por año</td><td>2</td><td>0.00</td><td class="ok">✓</td></tr>
+            <tr><td>Ventas y coste por categoría</td><td>4</td><td>0.00</td><td class="ok">✓</td></tr>
+            <tr><td>Segmento + huérfano</td><td>4</td><td>0.00</td><td class="ok">✓</td></tr>
+            <tr><td>Devoluciones</td><td>1</td><td>0.00</td><td class="ok">✓</td></tr>
+            <tr><td>29 de febrero</td><td>1</td><td>0.00</td><td class="ok">✓</td></tr>
+            <tr><td>Clientes por región</td><td>5</td><td>0.00</td><td class="ok">✓</td></tr>
+          </tbody>
+        </table>
+        <p class="legend" style="margin:1cqw 0 0">Ejemplo de job summary · el oráculo da −243.712,01 € de devoluciones con la semilla 20261107</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 24 · LO QUE ENCONTRÓ EL AGENTE -->
+<section class="slide" data-kicker="Content / Lessons" data-kicker-color="orange" data-accent-bars="true"
+  data-status="mode: review  ·  exit code on cancel: 0 → 3  ·  runner: windows  ·  state: persisted"
+  data-notes="Lo más valioso de dejar que el agente genere la pipeline leyendo el código del MCP: encuentra cosas.
+1. promote sin --yes ante drift imprime «Promoción cancelada» y sale con código 0. En CI la pipeline quedaría verde sin haber promocionado. Solución: promote_gate.ps1 lo convierte en fallo (y es una issue/PR natural para el propio MCP).
+2. La caché de tokens usa DPAPI: runner Windows.
+3. En modo auto, si no hubiera sesión az, el CLI caería a device flow y el job se quedaría esperando a un humano: auth --method az_cli explícito.
+4. La DuckDB es el estado; un runner es efímero. Sin persistirla no hay detección de drift: rama pbi-state y concurrency.
+5. Refresh y executeQueries no son tools del MCP todavía: pbi_rest.py. Candidatos claros al roadmap.">
+  <h2 class="title">Lo que el agente encontró</h2>
+  <p class="subtitle">Generar la pipeline leyendo el código del MCP destapa lo que una demo nunca enseña.</p>
+  <div class="body" style="top:15.4cqw;height:32cqw">
+    <table class="t" style="font-size:1.22cqw">
+      <tbody>
+        <tr><td class="ko" style="width:30%">Cancelar = éxito</td><td><code>promote</code> ante drift sin <code>--yes</code> sale con código 0 → <code>promote_gate.ps1</code> lo convierte en fallo</td></tr>
+        <tr><td class="wait">DPAPI</td><td>La caché de tokens es de Windows → <code>runs-on: windows-latest</code></td></tr>
+        <tr><td class="wait">Device flow</td><td>En <code>auto</code> podría esperar a un humano → <code>auth --method az_cli</code></td></tr>
+        <tr><td class="wait">Estado efímero</td><td>Sin la DuckDB no hay drift → rama <code>pbi-state</code> + <code>concurrency</code></td></tr>
+        <tr><td class="hl">Huecos del MCP</td><td>Refresh y <code>executeQueries</code> aún no son tools → <code>pbi_rest.py</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 25 · DEMO PIPELINE -->
+<section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
+  data-status="mode: agent → ci  ·  PR: #42  ·  dax regression: ✗ → ✓  ·  promote: approved"
+  data-notes="DEMO 3 (≈5 min). Claude Code en VS Code con el MCP conectado, sobre el repo del proyecto Ventas.
+Prepara: rama pbi-state con la DuckDB, environments de GitHub con reviewer, una ejecución previa en verde; ten abierto un PR ya lanzado por si la cola de runners va lenta.
+
+1. Lanza el prompt: muestra en el panel las tool calls (env-list, project-show, get_deployment_tree) antes de que escriba YAML.
+2. Enseña el workflow y promote_gate.ps1 generados.
+3. PR con una medida rota (Margen % sobre importe bruto): validate en rojo, enseña la tabla del job summary con el diff.
+4. Arregla, verde, merge.
+5. Aprueba el environment produccion y enseña project-tree en el resumen.">
+  <h2 class="title" style="top:5.6cqw">Demo · el agente escribe y usa la pipeline</h2>
+  <div class="live-main window"><span class="wtitle">claude-code · powerbi-mcp · github</span>
+<pre class="transcript"><span class="u">Genera la pipeline de Ventas según el prompt anterior</span>
+  <span class="t">⚙ env-list · project-show Ventas · get_deployment_tree</span>
+  <span class="r">✎ .github/workflows/powerbi-ci.yml · ci/*.py · promote_gate.ps1</span>
+<span class="u">Abre un PR que cambie Margen % a importe bruto</span>
+  <span class="t">▶ validate</span>  sintético → CI → refresh → regresión → cuadre
+  <span class="e" style="color:var(--orange)">✗ ventas_mes_categoria cambió · Margen % Δ 0.0712</span>
+<span class="u">Corrige la medida y vuelve a lanzar</span>
+  <span class="r">✓ regresión 3/3 · cuadre 6/6</span>  → merge
+  <span class="t">▶ deploy Desarrollo → promote Integración</span>
+  <span class="h">⏸ esperando aprobación · environment produccion</span>
+  <span class="r">✓ promote Producción · project-tree en el summary</span></pre>
+  </div>
+  <div class="live-side"><h4>No olvidar</h4>
+    <ul><li>tool calls antes del YAML</li><li>enseñar el diff rojo</li><li>aprobación humana</li><li>PR de reserva</li></ul>
+    <div class="foot">watch → explain → prove</div></div>
+</section>
+
+<!-- 25b · FLUJO DEV → PROD -->
+<section class="slide" data-kicker="Architecture / Pipeline" data-kicker-color="yellow" data-panel="none"
+  data-status="branch: dev → AIVD Ventas DEV  ·  PR → main (sellada) → AIVD Ventas PROD  ·  auth: OIDC → az_cli"
+  data-notes="El flujo que vamos a ver en vivo, en github.com/megeagomez/ai-virtual-days-2026.
+Push a dev: validar el PBIP y desplegar en AIVD Ventas DEV con el CLI del MCP.
+PR a main: validar y «plan»: qué hay ahora en PROD y qué ficheros cambian.
+main está sellada: nadie hace push directo; solo entra por PR con el check validate en verde.
+Merge: despliegue en AIVD Ventas PROD y Release prod-AAAAMMDD-HHMMSS con el PBIP comprimido. Esa Release ES la versión.
+Autenticación: app registration con credencial federada (OIDC), sin secretos; azure/login y pbi_cli.py auth --method az_cli.">
+  <h2 class="title">dev → DEV · PR → PROD</h2>
+  <p class="subtitle">El mismo CLI que usa el agente, ahora desatendido en GitHub Actions.</p>
+  <div class="body wide" style="top:15.4cqw;height:22cqw">
+    <div class="chain">
+      <div class="step"><div class="num t-cyan">01 · push dev</div><h3>Validar</h3><p>JSON, TMDL y enlace del informe, sin tocar Power BI</p></div>
+      <div class="arrow">→</div>
+      <div class="step hot"><div class="num t-green">02 · dev</div><h3>AIVD Ventas DEV</h3><p><code>upload-model</code> + <code>upload-report --rebind</code></p></div>
+      <div class="arrow">→</div>
+      <div class="step human"><div class="num t-orange">03 · PR a main</div><h3>Plan</h3><p>Qué hay en PROD y qué cambia. main sellada: solo por PR</p></div>
+      <div class="arrow">→</div>
+      <div class="step hot"><div class="num t-green">04 · merge</div><h3>AIVD Ventas PROD</h3><p>Despliegue + Release <code>prod-AAAAMMDD-HHMMSS</code></p></div>
+    </div>
+  </div>
+  <p class="callout"><b>Sin secretos:</b> OIDC → <code>azure/login</code> → <code>pbi_cli.py auth --method az_cli</code>. Cada despliegue a PROD es una versión con su PBIP, recuperable.</p>
+</section>
+
+<!-- 25c · DEMO CI/CD + HISTORIAL + ROLLBACK -->
+<section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
+  data-status="v1 → v2 (Margen neto) → v3 (Ventas netas rota) → rollback a v2"
+  data-notes="DEMO CI/CD (≈8 min). Guion: demos/GUION-DEMOS.md (Demos 2 y 3).
+1. En dev: ./demos/cambios/v2-margen-neto.ps1, commit y push → Actions despliega en DEV. Enseña la medida nueva en el portal.
+2. Intenta git push origin dev:main → rechazado: main está sellada.
+3. gh pr create → validate + plan en verde → merge → PROD + Release v2.
+4. Repite con ./demos/cambios/v3-error-ventas-netas.ps1 (o tenlo ya hecho): PROD enseña ventas infladas.
+5. Historial: pestaña Releases o gh release list. Cada versión tiene commit, autor, ejecución y el PBIP.
+6. Rollback: gh workflow run rollback-prod -f version=&lt;tag v2&gt; → PROD vuelve a v2 y queda registrado como versión nueva.
+7. Remata: el rollback apaga el fuego; git revert arregla la fuente (si no, el próximo merge vuelve a subir v3).">
+  <h2 class="title" style="top:5.6cqw">Demo · versiones y vuelta atrás</h2>
+  <div class="live-main window"><span class="wtitle">terminal · git · gh · github actions</span>
+<pre class="transcript"><span class="u">./demos/cambios/v2-margen-neto.ps1 ; git push origin dev</span>
+  <span class="t">▶ validate → deploy-dev</span>   <span class="r">✓ AIVD Ventas DEV</span>
+<span class="u">git push origin dev:main</span>
+  <span class="e" style="color:var(--orange)">✗ protected branch: main solo admite PR</span>
+<span class="u">gh pr create --base main ; gh pr merge</span>
+  <span class="t">▶ validate · plan-prod → deploy-prod</span>  <span class="r">✓ prod-…v2</span>
+  <span class="h">✎ v3: «Ventas netas» suma el bruto → cifras infladas en PROD</span>
+<span class="u">gh release list</span>
+  prod-…v3 · prod-…v2 · prod-…v1   <span class="h">← commit · autor · PBIP</span>
+<span class="u">gh workflow run rollback-prod -f version=prod-…v2</span>
+  <span class="r">✓ PROD = v2 · registrado como «ROLLBACK a prod-…v2»</span></pre>
+  </div>
+  <div class="live-side"><h4>No olvidar</h4>
+    <ul><li>push a main rechazado</li><li>summary del plan</li><li>Releases = versiones</li><li>rollback ≠ revert</li></ul>
+    <div class="foot">demos/GUION-DEMOS.md · Demos 2-3</div></div>
+</section>
+
+<!-- 26 · VERSUS -->
+<section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="diag-soft" data-footer="hub"
+  data-notes="Resumen en una imagen: lo que distingue una demo bonita de un sistema real. Todo lo de la derecha lo hemos visto funcionando hoy.">
+  <h2 class="title" style="top:5.6cqw">Demo bonita vs sistema real</h2>
+  <div class="vs-left"><h3>DEMO BONITA</h3><ul><li>«Publícalo» y cruzar los dedos</li><li>Credenciales en un script</li><li>Sin histórico ni entornos</li><li>Nadie sabe si los números cuadran</li></ul></div>
+  <div class="vs-mark">VS</div>
+  <div class="vs-right"><h3>SISTEMA REAL</h3><ul><li>Tools deterministas y tus permisos</li><li>OIDC → az login, sin secretos</li><li>Entornos, promote y drift</li><li>Regresión y cuadre en cada PR</li></ul></div>
+</section>
+
+<!-- 27 · COMPARATIVA -->
+<section class="slide" data-kicker="Data / Compare" data-kicker-color="cyan" data-panel="none"
+  data-notes="Comparativa honesta. Si ya tenéis fabric-cicd o Deployment Pipelines funcionando, usadlos: el MCP convive con ellos como capa de operación, auditoría y backup. Donde brilla es en el hueco: equipos sin DevOps montado, licencia Pro, y gente de negocio que necesita operar con disciplina.">
+  <h2 class="title wide">¿Y frente a lo que ya existe?</h2>
+  <div class="body wide" style="top:12.6cqw">
+    <table class="t">
+      <thead><tr><th>Criterio</th><th>MCP + agente</th><th>MCP + GitHub Actions</th><th>fabric-cicd</th><th>Deployment Pipelines</th></tr></thead>
+      <tbody>
+        <tr><td>Conocimientos</td><td class="ok">Lenguaje natural</td><td>El agente escribe el YAML</td><td>Python + Git + CI/CD</td><td>Ninguno (UI)</td></tr>
+        <tr><td>Infraestructura</td><td class="ok">Ninguna (local)</td><td>Repo + Actions</td><td>Git + ADO / Actions</td><td>Portal Fabric</td></tr>
+        <tr><td>Licencia</td><td>Pro</td><td>Pro</td><td>Pro</td><td class="wait">Fabric / Premium</td></tr>
+        <tr><td>Desatendido</td><td>—</td><td class="ok">Sí (OIDC → az_cli)</td><td class="ok">Sí</td><td class="ok">Sí</td></tr>
+        <tr><td>Drift antes de sobrescribir</td><td class="ok">Sí</td><td class="ok">Sí (puerta)</td><td>—</td><td>Comparación visual</td></tr>
+        <tr><td>Tests de datos</td><td>—</td><td class="ok">Regresión + cuadre</td><td>Los que añadas</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 28 · CIERRE -->
+<section class="slide" data-kicker="Key idea" data-kicker-color="green" data-panel="diag-soft" data-footer="hub"
+  data-notes="Cierre. Una frase por mirada: negocio — de «publicar y rezar» a publicar con confianza, en español, sin código. Técnica — entornos, promoción y drift sin montar infraestructura, y cuando la quieres, el agente te la escribe.
+Roadmap: refresh y execute_dax como tools, que promote cancelado devuelva error, el rastro de decisión (audit trail de cada tool call, ya diseñado para 0.2.1) y multiplataforma (hoy DPAPI = Windows).
+Frase final: el futuro del deploy no es más DevOps, es DevOps conversacional.">
+  <h2 class="title">Para llevarse</h2>
+  <div class="body wide" style="top:12.4cqw;height:35cqw;width:85cqw">
+    <p class="end-quote">El futuro del deploy no es <em>«más DevOps»</em>.<br>Es <em>DevOps conversacional</em>… que escribe el DevOps clásico cuando lo necesitas.</p>
+    <div class="split" style="height:auto;margin-top:2.4cqw">
+      <div class="frame mini" style="border-color:var(--cyan)"><h4 class="t-cyan">Una frase por mirada</h4><ul><li><b>Negocio:</b> de «publicar y rezar» a publicar con confianza, sin código.</li><li><b>Técnica:</b> entornos, promote y drift sin montar infraestructura.</li></ul></div>
+      <div class="frame mini" style="border-color:var(--yellow)"><h4 class="t-yellow">Roadmap</h4><ul><li>Tools <code>refresh_model</code> y <code>execute_dax</code></li><li>Promote cancelado → código de error</li><li>Rastro de decisión por tool call · multiplataforma</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 29 · SPONSORS (oficial, sin cambios) -->
+<section class="slide full-image" data-chrome="none" data-notes="Gracias de nuevo a los sponsors de AI Virtual Days 2026.">
+  <img class="full" src="assets/sponsors-21.jpg" alt="Gracias a nuestros sponsors: advancelearning, anessi, tajamar">
+</section>
+
+<!-- 30 · PREGUNTAS -->
+<section class="slide" data-kicker="Q&amp;A / Closing" data-kicker-color="yellow"
+  data-notes="Abre preguntas anticipando la típica: ¿esto reemplaza a Azure DevOps? No: cubre el hueco antes de que lo tengas, y cuando lo tienes, el agente te ayuda a escribirlo. Deja el repo a la vista.">
+  <h2 class="qa-title">¿Preguntas?</h2>
+  <div class="qa-badge frame brackets" style="border:none;background:none"><span class="br"></span></div>
+  <p class="qa-line" style="top:37.6cqw">Chat · Mano levantada · Slido / Mentimeter</p>
+  <p class="qa-line" style="top:40.6cqw"><span class="repo">github.com/megeagomez/PowerBiDeploymentMCP</span> · <span class="repo">github.com/megeagomez/ai-virtual-days-2026</span></p>
+  <p class="qa-line strong" style="top:44.4cqw">AI Virtual Days 2026 · Microsoft Speakers Hub en Español</p>
+</section>
+
+</div></div>
+<!-- include: theme/overlays.html -->
+<script src="theme/aivd-chrome.js"></script>
+<script src="theme/presentation.js"></script>
+</body>
+</html>

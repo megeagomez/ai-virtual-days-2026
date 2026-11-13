@@ -1,0 +1,8 @@
+EVALUATE
+ROW (
+    "Ventas", [Ventas],
+    "Coste", [Coste],
+    "Margen %", [Margen %],
+    "Clientes con compra", [Clientes con compra],
+    "Ventas YTD 2025", CALCULATE ( [Ventas YTD], 'Fecha'[Fecha] = DATE ( 2025, 12, 31 ) )
+)

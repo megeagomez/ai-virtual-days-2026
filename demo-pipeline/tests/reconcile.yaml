@@ -1,0 +1,48 @@
+# Cuadre DAX (modelo publicado) vs SQL (oráculo DuckDB sobre el mismo CSV sintético).
+# keys = nº de columnas clave al principio de cada fila; el resto se compara con tolerancia.
+tolerance: 0.01
+checks:
+  - name: Ventas por año
+    keys: 1
+    dax: |
+      EVALUATE SUMMARIZECOLUMNS('Fecha'[Año], "Ventas", [Ventas])
+    sql: |
+      SELECT year(fecha), sum(importe) FROM ventas GROUP BY 1
+
+  - name: Ventas y coste por categoría
+    keys: 1
+    dax: |
+      EVALUATE SUMMARIZECOLUMNS(Productos[categoria], "Ventas", [Ventas], "Coste", [Coste])
+    sql: |
+      SELECT p.categoria, sum(v.importe), sum(v.coste)
+      FROM ventas v JOIN productos p USING (id_producto) GROUP BY 1
+
+  - name: Ventas por segmento (incluye cliente huérfano → fila en blanco)
+    keys: 1
+    dax: |
+      EVALUATE SUMMARIZECOLUMNS(Clientes[segmento], "Ventas", [Ventas])
+    sql: |
+      SELECT c.segmento, sum(v.importe)
+      FROM ventas v LEFT JOIN clientes c USING (id_cliente) GROUP BY 1
+
+  - name: Devoluciones
+    keys: 0
+    dax: |
+      EVALUATE ROW("Devoluciones", CALCULATE([Ventas], Ventas[cantidad] < 0))
+    sql: |
+      SELECT sum(importe) FROM ventas WHERE cantidad < 0
+
+  - name: 29 de febrero de 2024
+    keys: 0
+    dax: |
+      EVALUATE ROW("Ventas", CALCULATE([Ventas], 'Fecha'[Fecha] = DATE(2024, 2, 29)))
+    sql: |
+      SELECT sum(importe) FROM ventas WHERE fecha = DATE '2024-02-29'
+
+  - name: Clientes con compra por región
+    keys: 1
+    dax: |
+      EVALUATE SUMMARIZECOLUMNS(Clientes[region], "Clientes", [Clientes con compra])
+    sql: |
+      SELECT c.region, count(DISTINCT v.id_cliente)
+      FROM ventas v LEFT JOIN clientes c USING (id_cliente) GROUP BY 1

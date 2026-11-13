@@ -1,0 +1,26 @@
+name: setup-pbi
+description: Python + PowerBiDeploymentMCP + login OIDC + auth del MCP vía az_cli (sin device flow)
+inputs:
+  client-id: { required: true, description: App registration con credencial federada para este repo }
+  tenant-id: { required: true, description: Tenant de Entra ID }
+  mcp-ref:   { required: false, default: main, description: "Tag o SHA del MCP (fíjalo en producción)" }
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: megeagomez/PowerBiDeploymentMCP
+        ref: ${{ inputs.mcp-ref }}
+        path: tools/pbimcp
+    - uses: actions/setup-python@v5
+      with: { python-version: "3.12", cache: pip }
+    - shell: pwsh
+      run: pip install ./tools/pbimcp -r ci/requirements.txt
+    - uses: azure/login@v2
+      with:
+        client-id: ${{ inputs.client-id }}
+        tenant-id: ${{ inputs.tenant-id }}
+        allow-no-subscriptions: true
+    - name: Auth del MCP reutilizando la sesión az (si fallara, NO cae a device flow)
+      shell: pwsh
+      run: python tools/pbimcp/pbi_cli.py auth --method az_cli
