@@ -1,0 +1,35 @@
+model Model
+	culture: es-ES
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: es-ES
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["Ventas","Cuotas","Fecha","Producto","Revendedor","Territorio","Vendedor","Promoción","Cobros","Método de pago","Tramo de antigüedad","Servidor SQL gold","Base de datos gold"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Ventas
+ref table Cuotas
+ref table Fecha
+ref table Producto
+ref table Revendedor
+ref table Territorio
+ref table Vendedor
+ref table Promoción
+ref table Cobros
+ref table 'Método de pago'
+ref table 'Tramo de antigüedad'
+ref table 'Tramos de deuda'
+ref table DateTableTemplate_f3c16a0d-2164-4d5c-b356-ce7cbfd0c456
+ref table LocalDateTable_6da99685-111b-4645-a0c7-c1250390c447
+ref table LocalDateTable_2ccb66e3-8092-48c0-b4d8-894ef8fd2484
+ref table LocalDateTable_1bce8b77-1438-4f49-ab1a-5291d81e722b
+ref table LocalDateTable_0dcf03f6-1aa5-42e6-afff-ca2aacbb3e21
+ref table LocalDateTable_0e5851db-5fdb-410e-951b-6052d1166bfb
+ref table LocalDateTable_cb0cf706-d676-4bbf-987a-76e0a246c3c4
+

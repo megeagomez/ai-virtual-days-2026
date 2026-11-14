@@ -1,0 +1,123 @@
+/// Catálogo de productos con su subcategoría y categoría (dim_producto). Un registro por producto.
+table Producto
+	lineageTag: b9d6ff0a-0e9b-4828-8fca-28e36bb3bd0d
+
+	column IdProducto
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: be83edb1-584a-4441-a234-fd6d0b869595
+		summarizeBy: none
+		sourceColumn: IdProducto
+
+	/// Referencia comercial del producto (ProductNumber).
+	column 'Código de producto'
+		dataType: string
+		lineageTag: e6651ab7-ffc0-4d36-b87e-1bedeb5ea7b8
+		summarizeBy: none
+		sourceColumn: CodigoProducto
+
+	/// Nombre del producto.
+	column Producto
+		dataType: string
+		lineageTag: 1a0994ae-45e2-4723-9a11-25c5f32ca315
+		summarizeBy: none
+		sourceColumn: Producto
+
+	/// Subcategoría (por ejemplo, Mountain Bikes o Jerseys).
+	column Subcategoría
+		dataType: string
+		lineageTag: 110818e0-0aee-4f35-93ac-ce71986a6c45
+		summarizeBy: none
+		sourceColumn: Subcategoria
+
+	/// Categoría: Bikes, Components, Clothing o Accessories.
+	column Categoría
+		dataType: string
+		lineageTag: b396166e-010e-48a4-afc7-56aa5c734872
+		summarizeBy: none
+		sourceColumn: Categoria
+
+	/// Color del producto. Vacío si no aplica.
+	column Color
+		dataType: string
+		lineageTag: 74cb6a87-3f34-496a-807c-700a1305651b
+		summarizeBy: none
+		sourceColumn: Color
+
+	/// Precio de tarifa actual (ListPrice). No es el precio cobrado: para eso, la medida Precio medio de venta.
+	column 'Precio de tarifa'
+		dataType: decimal
+		formatString: \$#,##0.00
+		lineageTag: 472c0f1a-aed5-4c65-a4c9-539e8911a057
+		summarizeBy: sum
+		sourceColumn: PrecioTarifa
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Coste estándar actual del producto. El margen usa el coste vigente en la fecha de cada pedido.
+	column 'Coste estándar'
+		dataType: decimal
+		formatString: \$#,##0.00
+		lineageTag: 0763bd80-7073-4671-84c4-0e5ae8375fcc
+		summarizeBy: sum
+		sourceColumn: CosteEstandar
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Fecha desde la que se vende el producto.
+	column 'Fecha inicio de venta'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 043efda8-7cef-4817-9f45-a2acd882645f
+		summarizeBy: none
+		sourceColumn: FechaInicioVenta
+
+		variation Variación
+			isDefault
+			relationship: d015f239-c975-4183-a65d-8e87586a040a
+			defaultHierarchy: LocalDateTable_6da99685-111b-4645-a0c7-c1250390c447.'Jerarquía de fechas'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Fecha en la que se dejó de vender. Vacía si sigue en catálogo.
+	column 'Fecha fin de venta'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 3cd03ccd-63f8-44bb-9bd7-db4cb142e3cc
+		summarizeBy: none
+		sourceColumn: FechaFinVenta
+
+		variation Variación
+			isDefault
+			relationship: 63f89c1d-c1f8-459b-bcab-707853c7fad2
+			defaultHierarchy: LocalDateTable_2ccb66e3-8092-48c0-b4d8-894ef8fd2484.'Jerarquía de fechas'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	hierarchy 'Jerarquía de producto'
+		lineageTag: b4094cda-c438-49d4-8092-2c78bbb2f5db
+
+		level Categoría
+			lineageTag: 245dfa3b-ad72-42b3-82a6-9a8ecb822418
+			column: Categoría
+
+		level Subcategoría
+			lineageTag: 98a916b0-49b3-4e86-b521-fc4a114aad9b
+			column: Subcategoría
+
+		level Producto
+			lineageTag: 28990bec-5ef0-4b73-ae5a-0b11b180499c
+			column: Producto
+
+	partition Producto = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_producto"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdProducto", "CodigoProducto", "Producto", "Subcategoria", "Categoria", "Color", "PrecioTarifa", "CosteEstandar", "FechaInicioVenta", "FechaFinVenta"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdProducto", Int64.Type}, {"CodigoProducto", type text}, {"Producto", type text}, {"Subcategoria", type text}, {"Categoria", type text}, {"Color", type text}, {"PrecioTarifa", Currency.Type}, {"CosteEstandar", Currency.Type}, {"FechaInicioVenta", type date}, {"FechaFinVenta", type date}})
+				in
+					#"Tipos aplicados"
+

@@ -1,0 +1,104 @@
+/// Promociones y ofertas especiales (dim_promocion). El tipo 'No Discount' son las ventas sin promoción.
+table Promoción
+	lineageTag: 9476225c-b08f-47f7-bcb7-f08318a4faa9
+
+	column IdPromocion
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 1f4646e3-7893-4be7-8cd1-a5a2d7c33764
+		summarizeBy: none
+		sourceColumn: IdPromocion
+
+	/// Nombre de la promoción u oferta.
+	column Promoción
+		dataType: string
+		lineageTag: cbd0257d-3052-4af7-913b-1d7e8ad58923
+		summarizeBy: none
+		sourceColumn: Promocion
+
+	/// Tipo: No Discount, Volume Discount, Discontinued Product, Seasonal Discount…
+	column 'Tipo de promoción'
+		dataType: string
+		lineageTag: cb14c630-c6f9-4678-8624-4eefad64ef19
+		summarizeBy: none
+		sourceColumn: TipoPromocion
+
+	/// A quién va dirigida: Reseller, Customer o No Discount.
+	column 'Categoría de promoción'
+		dataType: string
+		lineageTag: 369f6f2e-fcbf-44ba-bdd3-c6edd7ed3b29
+		summarizeBy: none
+		sourceColumn: CategoriaPromocion
+
+	/// Descuento teórico que aplica la promoción.
+	column 'Descuento de la promoción'
+		dataType: decimal
+		formatString: 0%
+		lineageTag: 90bc97cb-fc1e-4ead-8fbf-2c90a18bbbf6
+		summarizeBy: sum
+		sourceColumn: PorcentajeDescuento
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unidades mínimas para que aplique.
+	column 'Cantidad mínima'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: d1b50351-e7ba-4417-bf32-33670d5fca57
+		summarizeBy: sum
+		sourceColumn: CantidadMinima
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Unidades máximas. Vacía si no hay límite.
+	column 'Cantidad máxima'
+		dataType: int64
+		formatString: #,##0
+		lineageTag: 22ccc6ef-04c3-496b-a926-ce13cc382fd5
+		summarizeBy: sum
+		sourceColumn: CantidadMaxima
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Inicio de la promoción.
+	column 'Fecha inicio'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: f06b62fb-b2d5-4729-bd60-44b3c67933db
+		summarizeBy: none
+		sourceColumn: FechaInicio
+
+		variation Variación
+			isDefault
+			relationship: 0b83e081-c4ea-4e23-81e8-4ea60d723a63
+			defaultHierarchy: LocalDateTable_1bce8b77-1438-4f49-ab1a-5291d81e722b.'Jerarquía de fechas'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Fin de la promoción.
+	column 'Fecha fin'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 8b78ef0f-ca30-4521-8087-08cebb980c2e
+		summarizeBy: none
+		sourceColumn: FechaFin
+
+		variation Variación
+			isDefault
+			relationship: b6a151b3-c534-4aeb-b62b-429c90229ba1
+			defaultHierarchy: LocalDateTable_0dcf03f6-1aa5-42e6-afff-ca2aacbb3e21.'Jerarquía de fechas'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Promoción = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_promocion"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdPromocion", "Promocion", "TipoPromocion", "CategoriaPromocion", "PorcentajeDescuento", "CantidadMinima", "CantidadMaxima", "FechaInicio", "FechaFin"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdPromocion", Int64.Type}, {"Promocion", type text}, {"TipoPromocion", type text}, {"CategoriaPromocion", type text}, {"PorcentajeDescuento", Currency.Type}, {"CantidadMinima", Int64.Type}, {"CantidadMaxima", Int64.Type}, {"FechaInicio", type date}, {"FechaFin", type date}})
+				in
+					#"Tipos aplicados"
+

@@ -1,0 +1,44 @@
+/// Parámetro de campos para elegir qué tramos de antigüedad de la deuda se ven en un gráfico (una medida por tramo).
+table 'Tramos de deuda'
+	lineageTag: b7fb1319-3709-487f-b498-0ca7027eca13
+
+	/// Campo que se elige en el segmentador. Úsalo en el segmentador y en los visuales.
+	column 'Tramos de deuda'
+		lineageTag: f1f86abc-d4db-48e6-9f1a-ba5878bcbe5c
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Tramos de deuda Orden'
+
+		relatedColumnDetails
+			groupByColumn: 'Tramos de deuda Campos'
+
+	column 'Tramos de deuda Campos'
+		isHidden
+		lineageTag: c45afb68-1e07-42bf-b1a8-1d6842d95ba8
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Tramos de deuda Orden'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+	column 'Tramos de deuda Orden'
+		isHidden
+		formatString: 0
+		lineageTag: c2c63d41-3772-4f57-b149-d9595edb7163
+		summarizeBy: none
+		sourceColumn: [Value3]
+
+	partition 'Tramos de deuda' = calculated
+		mode: import
+		source =
+				{
+					("0–30 días", NAMEOF('Cobros'[Deuda 0–30 días]), 0),
+					("31–60 días", NAMEOF('Cobros'[Deuda 31–60 días]), 1),
+					("61–90 días", NAMEOF('Cobros'[Deuda 61–90 días]), 2),
+					("Más de 90 días", NAMEOF('Cobros'[Deuda más de 90 días]), 3)
+				}
+

@@ -1,0 +1,48 @@
+/// Tramos de antigüedad de la deuda vencida (dim_tramo_antiguedad). Tabla desconectada: úsala con la medida Deuda vencida por tramo. Los límites los mantiene Tesorería.
+table 'Tramo de antigüedad'
+	lineageTag: a67bccb4-1a74-4b45-876a-5b9336e35f45
+
+	/// Identificador y orden del tramo.
+	column IdTramo
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: af64df7c-9886-4ffe-b6ac-393735aa17b4
+		summarizeBy: none
+		sourceColumn: IdTramo
+
+	/// Tramo de antigüedad de la deuda vencida (0–30, 31–60, 61–90 o más de 90 días), ordenado de menos a más antiguo.
+	column Tramo
+		dataType: string
+		lineageTag: ba0fe496-ff1e-4a05-b72b-367b2473f034
+		summarizeBy: none
+		sourceColumn: Tramo
+		sortByColumn: IdTramo
+
+	/// Antigüedad mínima del tramo en días (incluida).
+	column 'Días desde'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0edf515a-a6b6-4544-a27f-f0b91c8f8694
+		summarizeBy: none
+		sourceColumn: DiasDesde
+
+	/// Antigüedad máxima del tramo en días (incluida). Vacía en el último tramo.
+	column 'Días hasta'
+		dataType: int64
+		formatString: 0
+		lineageTag: f12f1246-3637-44ce-9857-423f37267ab4
+		summarizeBy: none
+		sourceColumn: DiasHasta
+
+	partition 'Tramo de antigüedad' = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_tramo_antiguedad"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdTramo", "Tramo", "DiasDesde", "DiasHasta"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdTramo", Int64.Type}, {"Tramo", type text}, {"DiasDesde", Int64.Type}, {"DiasHasta", Int64.Type}})
+				in
+					#"Tipos aplicados"
+

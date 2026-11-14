@@ -459,28 +459,28 @@ Este servidor expone 32 tools, 7 resources y 6 prompts. Funciona con Claude Desk
 <!-- 10 · DEMO 1 -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
   data-status="mode: agent  ·  tool: upload_semantic_model  ·  op: updated  ·  data: intact"
-  data-notes="DEMO 1 (≈5 min) en Claude Desktop.
-Prepara: workspace «Ventas Demo» con modelo e informe Ventas publicados y con datos; D:\Demo\Ventas con el .pbip abierto en Desktop; copia «después» con la medida Margen % por si el tiempo aprieta. Workspace «Test» con ModeloVentas y el informe suelto D:\Demo\DashboardVentas.Report.
+  data-notes="DEMO 0 (≈5 min) en Claude Desktop con powerbi-mcp-deploy. Guion y prompts: demos/GUION-DEMOS.md (Demo 0).
+Prepara: workspace «AIVD Ventas Demo» con el modelo e informe Ventas publicados y con datos; demos\Powerbi\Ventas\Ventas.pbip abierto en Desktop. Si el tiempo aprieta: ./demos/Powerbi/margen-pct.ps1 añade la medida sin Desktop. Para el rebind: el informe suelto demos\Powerbi\Sueltos\DashboardVentas.Report y el modelo GreatAdventuresVentas de «AIVD Ventas DEV».
 
 1. Enseña el informe publicado con cifras: esto es el «antes».
-2. Pide listar workspaces con Demo y el contenido de Ventas Demo.
-3. En Desktop añade Margen % y guarda (o usa la copia «después»).
+2. Pide listar workspaces con Demo y el contenido de AIVD Ventas Demo.
+3. En Desktop añade Margen % y guarda (o ./demos/Powerbi/margen-pct.ps1 con Desktop cerrado).
 4. Pide subir el proyecto. Antes de refrescar el portal pregunta: ¿alguien cree que esto acaba de borrar los datos?
 5. Refresca: la medida aparece y las filas siguen ahí.
 6. Rebind: sube un informe suelto y enlázalo a un modelo de OTRO workspace. Di en voz alta: mismo tool, distintos caminos de API.">
   <h2 class="title" style="top:5.6cqw">Demo · publicar hablando</h2>
-  <div class="live-main window"><span class="wtitle">claude-desktop · powerbi-mcp</span>
+  <div class="live-main window"><span class="wtitle">claude-desktop · powerbi-mcp-deploy</span>
 <pre class="transcript"><span class="u">Lista los workspaces que tengan 'Demo' en el nombre</span>
   <span class="t">⚙ list_workspaces</span>
-<span class="u">¿Qué hay publicado en Ventas Demo?</span>
+<span class="u">¿Qué hay publicado en AIVD Ventas Demo?</span>
   <span class="t">⚙ get_workspace_contents</span> → modelo Ventas · informe Ventas
   <span class="h">✎ Desktop: nueva medida «Margen %» · guardar .pbip</span>
-<span class="u">Sube el proyecto de D:\Demo\Ventas a Ventas Demo</span>
+<span class="u">Sube demos\Powerbi\Ventas a AIVD Ventas Demo</span>
   <span class="t">⚙ upload_semantic_model</span> → operation: "updated"
   <span class="t">⚙ upload_report</span>         → operation: "updated"
   <span class="r">✓ medida nueva visible · filas cargadas intactas</span>
-<span class="u">Sube D:\Demo\DashboardVentas.Report a «Informes» y</span>
-<span class="u">enlázalo a ModeloVentas del workspace Test</span>
+<span class="u">Sube Sueltos\DashboardVentas.Report a «Informes»</span>
+<span class="u">y enlázalo a GreatAdventuresVentas de AIVD Ventas DEV</span>
   <span class="t">⚙ upload_report(rebind_to_model, rebind_workspace_name)</span>
   <span class="r">✓ definition.pbir parcheado → apunta al modelo correcto</span></pre>
   </div>

@@ -1,12 +1,13 @@
 # Guion de demos · DevOps conversacional (AI Virtual Days 2026)
 
 Los bloques `text` son **prompts para copiar y pegar** en el chat. Los bloques `powershell` se escriben en la terminal.
-Diapos asociadas: 13–14 (Demo 1) y 28–29 (Demos 2 y 3).
+Diapos asociadas: 10 (Demo 0), 13–14 (Demo 1) y 28–29 (Demos 2 y 3).
 
 | Pieza | Valor |
 |---|---|
 | PBIP | `D:\Presentaciones\2026\11. AI VirtualDAys\src\Powerbi` → modelo + informe `GreatAdventuresVentas` |
 | Workspaces del pipeline | `AIVD Ventas DEV` · `AIVD Ventas PROD` |
+| Demo 0 (publicar hablando) | PBIP `demos\Powerbi\Ventas` (copia de la de `src` renombrada a `Ventas`) · informe suelto `demos\Powerbi\Sueltos\DashboardVentas.Report` · workspace `AIVD Ventas Demo` |
 | Workspaces de la demo agéntica | `AIVD Demo Agente MCP` · `AIVD Demo Agente sin MCP` (vacíos) |
 | Repo | `github.com/megeagomez/ai-virtual-days-2026` · ramas `dev` y `main` (sellada) |
 | Cuenta Fabric | `miguel.egea@midatalab.com` (az login) · cuenta GitHub: `megeagomez` |
@@ -16,12 +17,47 @@ Diapos asociadas: 13–14 (Demo 1) y 28–29 (Demos 2 y 3).
 ## Antes de la charla (checklist)
 
 - [ ] `az login` con la cuenta de Fabric y `gh auth status` en verde con `megeagomez`.
+- [ ] **Datos en AIVD Ventas Demo** (modelo `Ventas`): igual que abajo, credenciales OAuth2 + *Actualizar ahora*. Sin datos, el «antes» de la Demo 0 sale vacío.
+- [ ] Demo 0 en su estado inicial: `./demos/Powerbi/margen-pct.ps1 -Deshacer` y en `AIVD Ventas Demo` solo `Ventas` (sin `DashboardVentas`).
 - [ ] **Datos en DEV y PROD**: en cada workspace → modelo `GreatAdventuresVentas` → *Configuración → Credenciales del origen de datos* → OAuth2 → *Actualizar ahora*. Solo una vez: los despliegues posteriores (`updateDefinition`) **no borran los datos**.
 - [ ] Workspaces de la demo agéntica vacíos: `./demos/reset-demo.ps1`.
 - [ ] Repo en `dev`, sin cambios pendientes y con `src` en v1 (`git status`, `git log --oneline -3`).
 - [ ] Release v1 en PROD ya creada (`gh release list`): así el rollback tiene a dónde volver.
 - [ ] Pestañas abiertas: portal de los 4 workspaces · `Actions` · `Releases` · esta guía.
 - [ ] Plan B: `demos/sin-mcp/deploy-rest.ps1` abierto en VS Code; ensayo grabado de las Demos 2–3 por si la cola de runners va lenta.
+
+---
+
+## Demo 0 · Publicar hablando (≈5 min · diapo 10)
+
+**Idea**: quien no programa publica, actualiza y reenlaza informes hablando, y el «Reemplazar» no borra los datos.
+Claude Desktop con `powerbi-mcp-deploy` activo y `fabric` desactivado. Abre `demos\Powerbi\Ventas\Ventas.pbip` en Desktop.
+
+1. En el portal, enseña el informe `Ventas` de **AIVD Ventas Demo** con sus cifras: esto es el «antes».
+
+```text
+Con powerbi-mcp-deploy: lista los workspaces que tengan "Demo" en el nombre y dime qué hay publicado en "AIVD Ventas Demo".
+```
+
+2. En Desktop, en la tabla *Ventas*, nueva medida y **guarda** el .pbip:
+   `Margen % = DIVIDE([Ventas netas] - [Coste], [Ventas netas])` (formato porcentaje).
+   Si el tiempo aprieta: cierra Desktop y ejecuta `./demos/Powerbi/margen-pct.ps1`.
+
+```text
+Con powerbi-mcp-deploy: sube el proyecto Power BI de D:\Presentaciones\2026\11. AI VirtualDAys\demos\Powerbi\Ventas (modelo e informe Ventas) al workspace "AIVD Ventas Demo", sustituyendo lo que ya hay.
+```
+
+Esperado: `upload_semantic_model` → `"operation": "updated"` y `upload_report` → `"updated"`.
+Antes de refrescar el portal pregunta: «¿alguien cree que esto acaba de borrar los datos?». Refresca: aparece **Margen %** y las cifras siguen ahí.
+
+3. Reenlace entre workspaces: un informe suelto, sin su modelo al lado.
+
+```text
+Con powerbi-mcp-deploy: sube el informe D:\Presentaciones\2026\11. AI VirtualDAys\demos\Powerbi\Sueltos\DashboardVentas.Report al workspace "AIVD Ventas Demo", dentro de la carpeta "Informes", y enlázalo al modelo semántico GreatAdventuresVentas del workspace "AIVD Ventas DEV".
+```
+
+Esperado: `upload_report(rebind_to_model="GreatAdventuresVentas", rebind_workspace_name="AIVD Ventas DEV", folder_path="Informes")`.
+Di en voz alta: el MCP parchea `definition.pbir` de `byPath` a `byConnection` para que apunte al modelo correcto aunque viva en otro workspace.
 
 ---
 
@@ -200,6 +236,8 @@ Lista las versiones publicadas en PROD (releases prod-*), dime cuál fue la últ
 
 ```powershell
 ./demos/reset-demo.ps1 -Yes                                  # vacía los workspaces de la demo agéntica
+./demos/Powerbi/margen-pct.ps1 -Deshacer                     # Demo 0: quita 'Margen %' (o descarta los cambios de Desktop con git)
+#   y en el portal de AIVD Ventas Demo borra DashboardVentas; vuelve a subir Ventas (sin la medida) con el agente
 gh workflow run rollback-prod -f version=<tag-v1> -f target=prod
 gh workflow run rollback-prod -f version=<tag-v1> -f target=dev
 # y en git, revierte v2/v3 en dev y haz PR a main (o restaura src/Powerbi desde el tag v1)
