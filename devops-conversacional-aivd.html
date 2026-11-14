@@ -670,36 +670,38 @@ Mapeo de workspaces: manual (project-set-workspace, eliges nombres y puedes sepa
 
 <!-- 16 · DEMO DRIFT -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
-  data-status="mode: cli  ·  promote: Producción  ·  drift: DETECTED  ·  overwrite: blocked"
-  data-notes="DEMO 2 (≈4 min), la demo estrella. Mismo flujo desde terminal: cada comando tiene su tool MCP equivalente.
-Prepara: entornos y proyecto ya creados (enseña env-list y project-tree), D:\Proyectos\Ventas con subcarpetas Modelos e Informes.
+  data-status="mode: chat  ·  promote → Produccion  ·  drift: DETECTED  ·  agent: asks"
+  data-notes="DEMO 2 (≈6 min), la demo estrella, desde Claude Desktop con powerbi-mcp-deploy (fabric desactivado). Prompts: demos/GUION-DEMOS.md (Demo 2).
+Prepara: los tres workspaces AIVD Cadena … vacíos; si vas justo, crea entornos y proyecto antes (prompt 1).
 
-1. deploy a Desarrollo con --respect-local-structure: replica las carpetas en el workspace.
-2. promote a Integración: en memoria, sin tocar disco.
-3. Simula la urgencia: deploy directo a Producción.
-4. promote a Producción: compara el hash de Producción con lo último promocionado desde Integración, no coincide, y PARA.
-5. Confirma con --yes y enseña project-tree.
+1. Entornos (stage_order 10, 11, 12) y proyecto VentasAIVD con sus carpetas, hablando.
+2. deploy a AIVD Desarrollo desde demos\Powerbi\Ventas: crea las carpetas Ventas/Modelos y Ventas/Informes.
+3. promote a AIVD Integracion: en memoria, sin tocar disco.
+4. La urgencia: deploy directo a AIVD Produccion, saltándose la cadena.
+5. promote a AIVD Produccion: el MCP compara con lo último promocionado, ve un deploy directo, devuelve needs_confirmation y el AGENTE PARA y te pregunta. Lee el drift en voz alta.
+6. «Sí, confirmo» → promote con confirm_drift y árbol de despliegue.
 
-Mensaje: nada de esto necesita YAML ni Premium. La disciplina la impone la herramienta, no la memoria de cada uno.">
+Mensaje: nada de esto necesita YAML ni Premium. La disciplina la impone la herramienta, y el agente no puede saltársela sin que tú lo confirmes. Lo mismo existe en el CLI (pbi_cli.py promote … --yes).">
   <h2 class="title" style="top:5.6cqw">Demo · promoción y drift</h2>
-  <div class="live-main window"><span class="wtitle">pwsh · pbi_cli.py</span>
-<pre class="transcript"><span class="c" style="color:var(--muted)"># entornos y proyecto ya creados (env-create · project-create)</span>
-<span class="r">$</span> pbi_cli.py deploy  Ventas Desarrollo D:\Proyectos\Ventas --respect-local-structure
-<span class="r">$</span> pbi_cli.py promote Ventas Integración
-<span class="r">$</span> pbi_cli.py deploy  Ventas Producción D:\Proyectos\Ventas   <span style="color:var(--muted)"># hotfix</span>
-<span class="r">$</span> pbi_cli.py promote Ventas Producción
-
-<span class="h">⚠ Divergencia detectada respecto al entorno origen (Integración):</span>
-<span class="h">    [SemanticModel] ModeloVentas:</span>
-<span class="h">      - el último cambio en este entorno fue un 'deploy'</span>
-<span class="h">        directo, no una promoción</span>
-  ¿Confirmas la sobrescritura? [y/N]
-
-<span class="r">$</span> pbi_cli.py promote Ventas Producción --yes
-<span class="r">$</span> pbi_cli.py project-tree Ventas</pre>
+  <div class="live-main window"><span class="wtitle">claude-desktop · powerbi-mcp-deploy</span>
+<pre class="transcript"><span class="u">Crea los entornos AIVD Desarrollo · Integracion · Produccion</span>
+<span class="u">(10 · 11 · 12) y el proyecto VentasAIVD con sus carpetas</span>
+  <span class="t">⚙ configure_environment ×3 · create_project · add_project_artifact ×2</span>
+<span class="u">Despliégalo en AIVD Desarrollo desde demos\Powerbi\Ventas</span>
+  <span class="t">⚙ deploy_project</span> → Ventas/Modelos · Ventas/Informes
+<span class="u">Promociónalo a AIVD Integracion</span>
+  <span class="t">⚙ promote_project</span> → <span class="r">✓ sin tocar disco</span>
+<span class="u">Urgente: despliega directo en AIVD Produccion</span>
+  <span class="t">⚙ deploy_project</span> → <span class="h">⚠ se salta la cadena</span>
+<span class="u">Promociona a AIVD Produccion</span>
+  <span class="t">⚙ promote_project</span> → <span class="h">needs_confirmation</span>
+  <span class="h">⚠ Divergencia: el último cambio fue un deploy directo</span>
+  <span class="h">  «¿Confirmas que sobrescribo lo que hay en Producción?»</span>
+<span class="u">Sí, confirmo. Enséñame el árbol</span>
+  <span class="t">⚙ promote_project(confirm_drift) · get_deployment_tree</span></pre>
   </div>
   <div class="live-side"><h4>No olvidar</h4>
-    <ul><li>promote ≠ deploy</li><li>stage_order manda</li><li>leer el drift en voz alta</li><li>chat = CLI</li></ul>
+    <ul><li>promote ≠ deploy</li><li>stage_order manda</li><li>el agente para y pregunta</li><li>chat = CLI</li></ul>
     <div class="foot">watch → explain → prove</div></div>
 </section>
 
@@ -957,7 +959,7 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
 <!-- 25c · DEMO CI/CD + HISTORIAL + ROLLBACK -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
   data-status="v1 → v2 (Margen neto) → v3 (Ventas netas rota) → rollback a v2"
-  data-notes="DEMO CI/CD (≈8 min). Guion: demos/GUION-DEMOS.md (Demos 2 y 3).
+  data-notes="DEMO CI/CD (≈8 min). Guion: demos/GUION-DEMOS.md (Demos 3 y 4).
 1. En dev: ./demos/cambios/v2-margen-neto.ps1, commit y push → Actions despliega en DEV. Enseña la medida nueva en el portal.
 2. Intenta git push origin dev:main → rechazado: main está sellada.
 3. gh pr create → validate + plan en verde → merge → PROD + Release v2.
@@ -981,7 +983,7 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
   </div>
   <div class="live-side"><h4>No olvidar</h4>
     <ul><li>push a main rechazado</li><li>summary del plan</li><li>Releases = versiones</li><li>rollback ≠ revert</li></ul>
-    <div class="foot">demos/GUION-DEMOS.md · Demos 2-3</div></div>
+    <div class="foot">demos/GUION-DEMOS.md · Demos 3-4</div></div>
 </section>
 
 <!-- 26 · VERSUS -->

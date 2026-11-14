@@ -1,7 +1,7 @@
 # Guion de demos · DevOps conversacional (AI Virtual Days 2026)
 
 Los bloques `text` son **prompts para copiar y pegar** en el chat. Los bloques `powershell` se escriben en la terminal.
-Diapos asociadas: 10 (Demo 0), 13–15 (Demo 1) y 29–30 (Demos 2 y 3).
+Diapos asociadas: 10 (Demo 0), 13–15 (Demo 1), 19 (Demo 2) y 29–30 (Demos 3 y 4).
 
 | Pieza | Valor |
 |---|---|
@@ -9,6 +9,7 @@ Diapos asociadas: 10 (Demo 0), 13–15 (Demo 1) y 29–30 (Demos 2 y 3).
 | Workspaces del pipeline | `AIVD Ventas DEV` · `AIVD Ventas PROD` |
 | Demo 0 (publicar hablando) | PBIP `demos\Powerbi\Ventas` (copia de la de `src` renombrada a `Ventas`) · informe suelto `demos\Powerbi\Sueltos\DashboardVentas.Report` · workspace `AIVD Ventas Demo` |
 | Workspaces de la demo agéntica | `AIVD Demo Agente MCP` · `AIVD Demo Agente sin MCP` (vacíos) |
+| Demo 2 (promoción y drift) | Proyecto `VentasAIVD` · entornos `AIVD Desarrollo` (10) → `AIVD Integracion` (11) → `AIVD Produccion` (12) · workspaces `AIVD Cadena Desarrollo / Integracion / Produccion` · PBIP `demos\Powerbi\Ventas` |
 | Repo | `github.com/megeagomez/ai-virtual-days-2026` · ramas `dev` y `main` (sellada) |
 | Cuenta Fabric | `miguel.egea@midatalab.com` (az login) · cuenta GitHub: `megeagomez` |
 
@@ -21,10 +22,11 @@ Diapos asociadas: 10 (Demo 0), 13–15 (Demo 1) y 29–30 (Demos 2 y 3).
 - [ ] Demo 0 en su estado inicial: `./demos/Powerbi/margen-pct.ps1 -Deshacer` y en `AIVD Ventas Demo` solo `Ventas` (sin `DashboardVentas`).
 - [ ] **Datos en DEV y PROD**: en cada workspace → modelo `GreatAdventuresVentas` → *Configuración → Credenciales del origen de datos* → OAuth2 → *Actualizar ahora*. Solo una vez: los despliegues posteriores (`updateDefinition`) **no borran los datos**.
 - [ ] Workspaces de la demo agéntica vacíos: `./demos/reset-demo.ps1`.
+- [ ] Demo 2: los tres `AIVD Cadena …` vacíos (ya lo están). En Claude Desktop, marca *Permitir siempre* las tools de `powerbi-mcp-deploy` para no ir clicando aprobaciones en directo.
 - [ ] Repo en `dev`, sin cambios pendientes y con `src` en v1 (`git status`, `git log --oneline -3`).
 - [ ] Release v1 en PROD ya creada (`gh release list`): así el rollback tiene a dónde volver.
 - [ ] Pestañas abiertas: portal de los 4 workspaces · `Actions` · `Releases` · esta guía.
-- [ ] Plan B: `demos/sin-mcp/deploy-rest.ps1` abierto en VS Code; ensayo grabado de las Demos 2–3 por si la cola de runners va lenta.
+- [ ] Plan B: `demos/sin-mcp/deploy-rest.ps1` abierto en VS Code; ensayo grabado de las Demos 3–4 por si la cola de runners va lenta.
 
 ---
 
@@ -139,11 +141,85 @@ Con MCP: `query_deployments` / `query_version_history` y `download_workspace`. S
 Skill = conocimiento + script versionado, con Git y Releases como historial (justo lo que hace nuestro pipeline).
 MCP + CLI = interfaz fija y estado compartido (entornos, drift, auditoría). «Lo que hoy es un MCP, mañana puede ser una skill».
 
-**Puente a la Demo 2**: «Lo que el agente hace con el MCP es lo mismo que hace el CLI del MCP. Y el CLI se puede poner en una GitHub Action».
+**Puente (lo retomas en la Demo 3)**: «Lo que el agente hace con el MCP es lo mismo que hace el CLI del MCP. Y el CLI se puede poner en una GitHub Action».
 
 ---
 
-## Demo 2 · dev → DEV, PR → PROD con main sellada (≈5 min · diapos 29–30)
+## Demo 2 · Promoción y drift, hablando (≈6 min · diapo 19)
+
+**Idea**: la disciplina de entornos la impone la herramienta. `deploy` sube desde disco; `promote` mueve lo que ya está en el
+entorno anterior sin tocar disco; y si alguien se salta la cadena, el MCP lo detecta y **el agente para y te pregunta**.
+Claude Desktop con `powerbi-mcp-deploy` activo y `fabric` desactivado.
+
+> **Por qué estos nombres**: en tu base de datos del MCP la cadena de entornos es **global** y ya ocupa las posiciones 0–6
+> (Dev, ACC, PROD, Desarrollo… de otras demos) y ya existe un proyecto «Ventas». Por eso aquí todo lleva prefijo AIVD,
+> el proyecto se llama `VentasAIVD` y las posiciones son 10, 11 y 12. No los cambies a 1-2-3.
+
+### 2.1 · Entornos y proyecto (si vas justo, hazlo antes de la charla)
+
+```text
+Con powerbi-mcp-deploy (no uses el servidor fabric): crea tres entornos en la cadena de promoción:
+- "AIVD Desarrollo" en el workspace "AIVD Cadena Desarrollo", stage_order 10
+- "AIVD Integracion" en el workspace "AIVD Cadena Integracion", stage_order 11
+- "AIVD Produccion" en el workspace "AIVD Cadena Produccion", stage_order 12
+Después crea el proyecto "VentasAIVD" con dos artefactos: el modelo semántico "Ventas" en la carpeta "Ventas/Modelos" y el informe "Ventas", enlazado al modelo "Ventas", en la carpeta "Ventas/Informes". Al terminar enséñame la lista de entornos y el proyecto.
+```
+
+Esperado: `configure_environment` ×3 · `create_project` · `add_project_artifact` ×2 · `list_environments` / `get_project`.
+Di en voz alta: el nombre del entorno es libre; **lo único que manda es `stage_order`**.
+
+### 2.2 · Primer despliegue (deploy, desde disco)
+
+```text
+Con powerbi-mcp-deploy: despliega el proyecto VentasAIVD en el entorno "AIVD Desarrollo" desde la carpeta D:\Presentaciones\2026\11. AI VirtualDAys\demos\Powerbi\Ventas.
+```
+
+Esperado: `deploy_project` → crea las carpetas `Ventas/Modelos` y `Ventas/Informes` en el workspace y deja el informe enlazado.
+Enséñalo en el portal de **AIVD Cadena Desarrollo**.
+
+### 2.3 · Promoción (promote, sin tocar disco)
+
+```text
+Con powerbi-mcp-deploy: promociona el proyecto VentasAIVD al entorno "AIVD Integracion".
+```
+
+Esperado: `promote_project` → copia la definición que hay en Desarrollo, no lo que hay en tu disco. Sin divergencia.
+
+### 2.4 · La urgencia: alguien se salta la cadena
+
+```text
+Hay una urgencia en producción. Con powerbi-mcp-deploy: despliega el proyecto VentasAIVD directamente en el entorno "AIVD Produccion" desde la carpeta D:\Presentaciones\2026\11. AI VirtualDAys\demos\Powerbi\Ventas, saltándote la cadena.
+```
+
+Esperado: `deploy_project` a Producción, con el aviso de que se salta la cadena de promoción.
+
+### 2.5 · Promocionar a Producción: el MCP lo detecta y el agente para
+
+```text
+Con powerbi-mcp-deploy: promociona el proyecto VentasAIVD a "AIVD Produccion". Si detectas divergencia, NO la confirmes tú: explícame qué has encontrado y espera a que yo decida.
+```
+
+Esperado: `promote_project` devuelve `needs_confirmation` con la divergencia (ensayado):
+*«el último cambio en este entorno fue un 'deploy' directo, no una promoción · la última promoción a este entorno vino de un entorno distinto»*.
+**Lee el drift en voz alta** y pregunta a la sala si confirmarías.
+
+### 2.6 · Confirmar y ver el árbol
+
+```text
+Sí, confirmo la sobrescritura. Después enséñame el árbol de despliegue del proyecto VentasAIVD.
+```
+
+Esperado: `promote_project(confirm_drift=true)` · `get_deployment_tree` → entornos, carpetas, workspace y fecha del último despliegue de cada artefacto.
+
+**Remate**: «Lo mismo existe en el CLI (`pbi_cli.py promote VentasAIVD "AIVD Produccion" --yes`). Ni YAML ni Premium:
+la disciplina la pone la herramienta, y el agente no puede saltársela sin que tú lo confirmes».
+
+> Para repetir el ensayo **no vacíes** los workspaces de la cadena: vuelve a lanzar desde 2.2. La base de datos del MCP recuerda
+> lo desplegado y la divergencia volverá a aparecer en 2.5.
+
+---
+
+## Demo 3 · dev → DEV, PR → PROD con main sellada (≈5 min · diapos 29–30)
 
 Enseña antes `.github/workflows/powerbi-cicd.yml` (30 segundos): `validate` → `deploy-dev` / `plan-prod` / `deploy-prod`, todo con `pbi_cli.py`.
 Autenticación: OIDC del app registration **PyUploader** → `azure/login` → `pbi_cli.py auth --method az_cli`. Sin secretos.
@@ -187,7 +263,7 @@ Abre un pull request de dev a main con los cambios del modelo GreatAdventuresVen
 
 ---
 
-## Demo 3 · Historial de versiones y vuelta atrás (≈5 min · diapo 30)
+## Demo 4 · Historial de versiones y vuelta atrás (≈5 min · diapo 30)
 
 ### 3.1 · Un cambio que sale mal (v3)
 
