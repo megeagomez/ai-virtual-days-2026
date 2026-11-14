@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Mostrar filtros",
+  "name": "Bookmark25cdac6afcf232233407",
+  "options": {
+    "applyOnlyToTargetVisuals": true,
+    "targetVisualNames": [
+      "18e33440a7edb1d9a593",
+      "d19f9fb1c372cb4a6355",
+      "eb3ad9b69de656acaf52",
+      "d592f8457971d6d30466",
+      "4265112b0ed5879acd3d",
+      "e2141198b6e54fed71a5",
+      "03233e8afd130566b88e",
+      "2bc85e909f8152d63c30",
+      "6f89733466d582c4051d",
+      "14f597fe3315965262e4"
+    ],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.0",
+    "activeSection": "87291ba05b232846d208",
+    "sections": {
+      "87291ba05b232846d208": {
+        "visualContainers": {},
+        "visualContainerGroups": {
+          "18e33440a7edb1d9a593": {
+            "isHidden": false
+          }
+        }
+      }
+    }
+  }
+}

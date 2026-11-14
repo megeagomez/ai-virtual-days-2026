@@ -1,0 +1,89 @@
+/// Cuota de ventas trimestral de cada comercial (fact_cuota_vendedor). La fecha es el primer día del trimestre de la cuota.
+table Cuotas
+	lineageTag: e1359744-5666-4c24-8abd-0c939fa439fa
+
+	/// Cuota de ventas asignada a los comerciales. Es trimestral: analízala por trimestre o por año, no por mes ni por día.
+	measure Cuota = SUM('Cuotas'[Importe de cuota])
+		formatString: \$#,##0
+		displayFolder: Cuotas
+		lineageTag: cc031946-d895-4c42-8e0a-5e2b3571bd54
+
+	/// Ventas netas de los comerciales sobre su cuota (quota attainment). 100 % = cuota cumplida.
+	measure '% Cumplimiento de cuota' =
+			VAR _cuota = [Cuota]
+			VAR _ventas = CALCULATE([Ventas netas], KEEPFILTERS(NOT ISBLANK('Ventas'[IdVendedor])))
+			RETURN
+				DIVIDE(_ventas, _cuota)
+		formatString: 0.0%
+		displayFolder: Cuotas
+		lineageTag: 9b7bc660-b2ca-4119-9015-6b410c438086
+
+	/// Ventas netas menos cuota. Positivo: por encima de la cuota.
+	measure 'Desviación sobre cuota' =
+			VAR _cuota = [Cuota]
+			RETURN
+				IF(NOT ISBLANK(_cuota), [Ventas netas] - _cuota)
+		formatString: \$#,##0
+		displayFolder: Cuotas
+		lineageTag: e2c46a85-57f9-4e1a-a9af-e7b1012eff33
+
+	/// Número de comerciales cuyas ventas netas del periodo alcanzan o superan su cuota.
+	measure 'Comerciales que cumplen cuota' =
+			VAR _cumplen =
+				COUNTROWS(
+					FILTER(
+						VALUES('Vendedor'[Vendedor]),
+						VAR _cuota = [Cuota]
+						RETURN NOT ISBLANK(_cuota) && [Ventas netas] >= _cuota
+					)
+				)
+			RETURN
+				IF(NOT ISBLANK([Cuota]), COALESCE(_cumplen, 0))
+		formatString: #,##0
+		displayFolder: Cuotas
+		lineageTag: 094d0dd5-986d-47f2-827e-e1ba401d956d
+
+	/// Ventas netas de cada comercial por su porcentaje de comisión actual. Es una estimación: no usa el histórico de comisiones.
+	measure 'Comisión estimada' = SUMX(VALUES('Vendedor'[IdVendedor]), [Ventas netas] * CALCULATE(MAX('Vendedor'[% Comisión])))
+		formatString: \$#,##0
+		displayFolder: Cuotas
+		lineageTag: 072a107b-67a1-4d5b-9e05-1e63b24e0028
+
+	column IdVendedor
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 41d222c4-568b-49e8-a7e5-f4a0ac2b20f1
+		summarizeBy: none
+		sourceColumn: IdVendedor
+
+	column FechaCuota
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		isAvailableInMdx: false
+		lineageTag: 5c72c96b-d648-44ac-a78d-daf26fccb77f
+		summarizeBy: none
+		sourceColumn: FechaCuota
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Importe de cuota'
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 8f42df3d-c097-4899-a96f-12957f580718
+		summarizeBy: sum
+		sourceColumn: Cuota
+
+	partition Cuotas = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "fact_cuota_vendedor"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdVendedor", "FechaCuota", "Cuota"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdVendedor", Int64.Type}, {"FechaCuota", type date}, {"Cuota", Currency.Type}})
+				in
+					#"Tipos aplicados"
+

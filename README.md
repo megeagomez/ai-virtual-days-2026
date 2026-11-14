@@ -9,6 +9,7 @@ desplegar Power BI hablando con un agente y, con el mismo CLI, en GitHub Actions
 | `src/index.html`, `src/theme/`, `src/assets/` | Fuentes de la presentación |
 | `src/Powerbi/` | Proyecto PBIP de ejemplo: modelo + informe `GreatAdventuresVentas` |
 | `demos/GUION-DEMOS.md` | **Guion de las demos** con los prompts para copiar y pegar |
+| `demos/Powerbi/` | PBIP `Ventas` e informe suelto `DashboardVentas` para la demo «publicar hablando» (diapo 10) |
 | `demos/cambios/` | Cambios v2 (bueno) y v3 (malo, a propósito) para enseñar versiones y rollback |
 | `demos/sin-mcp/` | Plan B de la demo sin MCP: despliegue con la API REST de Fabric a mano |
 | `.github/workflows/` | `powerbi-cicd.yml` (dev → DEV, PR → PROD) y `rollback-prod.yml` |
@@ -20,8 +21,8 @@ desplegar Power BI hablando con un agente y, con el mismo CLI, en GitHub Actions
 | Evento | Qué pasa |
 |---|---|
 | push a `dev` | `validate` → `deploy-dev`: publica el PBIP en **AIVD Ventas DEV** |
-| pull request a `main` | `validate` + `plan-prod`: qué hay en PROD y qué ficheros cambian |
-| merge en `main` | `validate` → `deploy-prod`: publica en **AIVD Ventas PROD** y crea la Release `prod-AAAAMMDD-HHMMSS` con el PBIP |
+| pull request a `main` | `validate` + `plan-prod` + `perf-gate`: qué hay en PROD, qué ficheros cambian y si las consultas DAX degradan ≥ 2× |
+| merge en `main` | `validate` + `perf-gate` → `deploy-prod`: publica en **AIVD Ventas PROD** y crea la Release `prod-AAAAMMDD-HHMMSS` con el PBIP (bloqueado si perf-gate falla) |
 | manual `rollback-prod` | redespliega el PBIP de una Release concreta (y lo registra como versión nueva) |
 
 `main` está protegida: solo admite cambios por PR con el check `validate` en verde.

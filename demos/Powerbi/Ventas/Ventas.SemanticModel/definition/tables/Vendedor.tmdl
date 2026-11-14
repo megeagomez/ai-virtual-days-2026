@@ -1,0 +1,45 @@
+/// Comerciales del canal de revendedores (dim_vendedor).
+table Vendedor
+	lineageTag: 07f595ea-12e5-449c-9d55-4cedd19e8f9c
+
+	column IdVendedor
+		dataType: int64
+		isHidden
+		lineageTag: 81d57849-982c-4754-9029-930c236a8ce3
+		summarizeBy: none
+		sourceColumn: IdVendedor
+
+	/// Nombre del comercial que gestiona el pedido.
+	column Vendedor
+		dataType: string
+		lineageTag: 543a5f8a-412c-4bca-9e6e-a4a0b89564bc
+		summarizeBy: none
+		sourceColumn: Vendedor
+
+	/// Cuota vigente del comercial según su ficha. Para el histórico, la medida Cuota.
+	column 'Cuota de ventas actual'
+		dataType: decimal
+		formatString: \$#,##0
+		lineageTag: d88e7842-93db-416b-a529-0d6304f961f0
+		summarizeBy: none
+		sourceColumn: CuotaVentas
+
+	/// Porcentaje de comisión actual del comercial.
+	column '% Comisión'
+		dataType: decimal
+		formatString: 0.0%
+		lineageTag: ca286a11-a273-4645-8a12-c862eb24f5c9
+		summarizeBy: none
+		sourceColumn: PorcentajeComision
+
+	partition Vendedor = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_vendedor"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdVendedor", "Vendedor", "CuotaVentas", "PorcentajeComision"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdVendedor", Int64.Type}, {"Vendedor", type text}, {"CuotaVentas", Currency.Type}, {"PorcentajeComision", Currency.Type}})
+				in
+					#"Tipos aplicados"
+

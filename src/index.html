@@ -82,7 +82,7 @@ Anuncia la idea fuerza: el futuro del deploy no es «más DevOps», es DevOps co
   data-notes="Presentación breve (20 segundos). Miguel Egea Gómez, Ingeniero Técnico en Informática, Máster en Big Data y Analytics, Technical Lead en Altia. Lo que importa para esta charla: llevo años publicando modelos e informes para clientes y este MCP es la herramienta que me hice para no volver a publicar con miedo.">
   <h2 class="title">El ponente también es parte del diseño</h2>
   <p class="subtitle">Datos, IA y despliegues que no dan miedo.</p>
-  <div class="speaker-photo frame brackets" style="border-color:var(--cyan)"><span class="br"></span>ME</div>
+  <div class="speaker-photo frame brackets" style="border-color:var(--cyan);padding:0"><span class="br"></span><img src="assets/speaker-megeagomez.jpg" alt="Miguel Egea Gómez" style="object-position:58% 40%"></div>
   <h3 class="speaker-name">Miguel Egea Gómez</h3>
   <div class="speaker-role">Technical Lead @ Altia<br><span style="color:var(--soft);font-weight:400">Ingeniero Técnico en Informática · Máster en Big Data y Analytics</span></div>
   <div class="speaker-pills pills"><span class="pill b">Power BI</span><span class="pill c">Fabric</span><span class="pill g">MCP</span><span class="pill y">Agents</span></div>
@@ -202,28 +202,28 @@ Este servidor expone 32 tools, 7 resources y 6 prompts. Funciona con Claude Desk
 <!-- 10 · DEMO 1 -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
   data-status="mode: agent  ·  tool: upload_semantic_model  ·  op: updated  ·  data: intact"
-  data-notes="DEMO 1 (≈5 min) en Claude Desktop.
-Prepara: workspace «Ventas Demo» con modelo e informe Ventas publicados y con datos; D:\Demo\Ventas con el .pbip abierto en Desktop; copia «después» con la medida Margen % por si el tiempo aprieta. Workspace «Test» con ModeloVentas y el informe suelto D:\Demo\DashboardVentas.Report.
+  data-notes="DEMO 0 (≈5 min) en Claude Desktop con powerbi-mcp-deploy. Guion y prompts: demos/GUION-DEMOS.md (Demo 0).
+Prepara: workspace «AIVD Ventas Demo» con el modelo e informe Ventas publicados y con datos; demos\Powerbi\Ventas\Ventas.pbip abierto en Desktop. Si el tiempo aprieta: ./demos/Powerbi/margen-pct.ps1 añade la medida sin Desktop. Para el rebind: el informe suelto demos\Powerbi\Sueltos\DashboardVentas.Report y el modelo GreatAdventuresVentas de «AIVD Ventas DEV».
 
 1. Enseña el informe publicado con cifras: esto es el «antes».
-2. Pide listar workspaces con Demo y el contenido de Ventas Demo.
-3. En Desktop añade Margen % y guarda (o usa la copia «después»).
+2. Pide listar workspaces con Demo y el contenido de AIVD Ventas Demo.
+3. En Desktop añade Margen % y guarda (o ./demos/Powerbi/margen-pct.ps1 con Desktop cerrado).
 4. Pide subir el proyecto. Antes de refrescar el portal pregunta: ¿alguien cree que esto acaba de borrar los datos?
 5. Refresca: la medida aparece y las filas siguen ahí.
 6. Rebind: sube un informe suelto y enlázalo a un modelo de OTRO workspace. Di en voz alta: mismo tool, distintos caminos de API.">
   <h2 class="title" style="top:5.6cqw">Demo · publicar hablando</h2>
-  <div class="live-main window"><span class="wtitle">claude-desktop · powerbi-mcp</span>
+  <div class="live-main window"><span class="wtitle">claude-desktop · powerbi-mcp-deploy</span>
 <pre class="transcript"><span class="u">Lista los workspaces que tengan 'Demo' en el nombre</span>
   <span class="t">⚙ list_workspaces</span>
-<span class="u">¿Qué hay publicado en Ventas Demo?</span>
+<span class="u">¿Qué hay publicado en AIVD Ventas Demo?</span>
   <span class="t">⚙ get_workspace_contents</span> → modelo Ventas · informe Ventas
   <span class="h">✎ Desktop: nueva medida «Margen %» · guardar .pbip</span>
-<span class="u">Sube el proyecto de D:\Demo\Ventas a Ventas Demo</span>
+<span class="u">Sube demos\Powerbi\Ventas a AIVD Ventas Demo</span>
   <span class="t">⚙ upload_semantic_model</span> → operation: "updated"
   <span class="t">⚙ upload_report</span>         → operation: "updated"
   <span class="r">✓ medida nueva visible · filas cargadas intactas</span>
-<span class="u">Sube D:\Demo\DashboardVentas.Report a «Informes» y</span>
-<span class="u">enlázalo a ModeloVentas del workspace Test</span>
+<span class="u">Sube Sueltos\DashboardVentas.Report a «Informes»</span>
+<span class="u">y enlázalo a GreatAdventuresVentas de AIVD Ventas DEV</span>
   <span class="t">⚙ upload_report(rebind_to_model, rebind_workspace_name)</span>
   <span class="r">✓ definition.pbir parcheado → apunta al modelo correcto</span></pre>
   </div>
@@ -280,50 +280,64 @@ PBIX es otro camino (Import API): sube el binario y, si el nombre existe, por de
 
 <!-- 12b · DEMO AGÉNTICA CON vs SIN MCP -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
-  data-status="mode: agent  ·  same prompt  ·  A: powerbi-mcp  ·  B: az + REST (no MCP)"
-  data-notes="DEMO agéntica (≈8 min). Guion completo y prompts para copiar: demos/GUION-DEMOS.md (Demo 1).
+  data-status="mode: agent  ·  same prompt  ·  A: powerbi-mcp-deploy (PowerBiDeploymentMCP)  ·  B: az + REST (no MCP)"
+  data-notes="DEMO agéntica (≈8 min). Guion y prompts: demos/GUION-DEMOS.md (Demo 1).
 Mismo prompt, mismo PBIP (src/Powerbi), dos workspaces vacíos: «AIVD Demo Agente MCP» y «AIVD Demo Agente sin MCP».
-1. Lanza primero el agente SIN MCP (Claude Code con --strict-mcp-config y config vacía): tarda más, así que corre mientras hablas.
+1. Lanza primero el agente SIN MCP: escribe su propio script de PowerShell (token, partes en base64, operación larga, byPath → byConnection), falla en un detalle, lo corrige solo y publica.
 2. Lanza el agente CON MCP: 2-3 tool calls y listo.
-3. Cuenta en voz alta lo que el agente sin MCP tiene que descubrir: token de Fabric, partes en base64 sin .platform ni .pbi, operaciones largas (202 + sondeo), reescribir definition.pbir de byPath a byConnection.
-4. Pregunta a los dos: «¿qué se ha desplegado hoy en ese workspace?». Con MCP: query_deployments. Sin MCP: no hay registro.
-Plan B si el agente sin MCP se atasca: ./demos/sin-mcp/deploy-rest.ps1 (enséñalo: ~100 líneas para lo que el MCP hace en una tool).">
+3. Sé honesto: los dos publican. Cuando creé el MCP en junio de 2026, el agente sin MCP tardaba muchísimo más y fallaba mucho más. Hoy llega.
+4. La diferencia está en la siguiente pregunta: «¿qué se ha desplegado hoy en ese workspace, quién y desde dónde?». Con MCP: query_deployments. Sin MCP: no hay registro.
+Plan B si el agente sin MCP se atasca: ./demos/sin-mcp/deploy-rest.ps1.">
   <h2 class="title" style="top:5.6cqw">Demo · mismo encargo, con y sin MCP</h2>
   <div class="live-main window"><span class="wtitle">claude · mismo prompt · dos agentes</span>
 <pre class="transcript"><span class="u">Publica el PBIP de src\Powerbi en «AIVD Demo Agente …»</span>
 <span class="u">y deja el informe enlazado al modelo de ese workspace</span>
-<span class="h">── A · con powerbi-mcp ──────────────────────────────</span>
-  <span class="t">⚙ upload_semantic_model</span> → created
-  <span class="t">⚙ upload_report(rebind_to_model)</span> → created · enlazado
-  <span class="t">⚙ query_deployments</span> → quién, cuándo, desde dónde
-<span class="h">── B · sin MCP (az + API REST) ───────────────────────</span>
-  <span class="t">▶ az account get-access-token · GET /workspaces</span>
-  <span class="t">▶ empaquetar partes base64 · ¿.platform? ¿.pbi?</span>
-  <span class="t">▶ POST /items → 202 → sondear la operación…</span>
-  <span class="e" style="color:var(--orange)">✗ informe: byPath no vale en el servicio → byConnection</span>
-  <span class="e" style="color:var(--orange)">✗ «¿qué se desplegó hoy?» → no queda registro</span></pre>
+<span class="h">── A · con powerbi-mcp-deploy ────────────────────────</span>
+  <span class="t">⚙ upload_semantic_model · upload_report(rebind)</span>
+  <span class="r">✓ publicado y enlazado · 2 tool calls</span>
+<span class="h">── B · sin MCP (az + PowerShell) ─────────────────────</span>
+  <span class="t">✎ escribe deploy.ps1: token · base64 · LRO · byConnection</span>
+  <span class="e" style="color:var(--orange)">✗ falla por un detalle</span> → <span class="t">lo corrige solo</span>
+  <span class="r">✓ publicado y enlazado</span>
+<span class="u">¿Qué se desplegó hoy, quién y desde dónde?</span>
+  <span class="t">A ⚙ query_deployments</span> → <span class="r">historial completo</span>
+  <span class="t">B</span> → <span class="e" style="color:var(--orange)">no queda registro</span></pre>
   </div>
   <div class="live-side"><h4>Marcador</h4>
-    <ul><li>tiempo hasta publicado</li><li>nº de llamadas</li><li>errores y reintentos</li><li>¿queda historial?</li><li>¿lo repetiría igual mañana?</li></ul>
+    <ul><li>¿publica? <b>los dos</b></li><li>tiempo y reintentos</li><li>¿queda historial?</li><li>¿mañana hará lo mismo?</li><li>¿y en el pipeline?</li></ul>
     <div class="foot">demos/GUION-DEMOS.md · Demo 1</div></div>
 </section>
 
 <!-- 12c · RESULTADO CON vs SIN MCP -->
 <section class="slide" data-kicker="Data / Compare" data-kicker-color="cyan" data-panel="none"
-  data-notes="Cierre de la demo agéntica. El agente sin MCP puede llegar, pero improvisa: cada vez escribe un script distinto, con tus credenciales en la terminal y sin dejar rastro. El MCP convierte la misma intención en tools deterministas, con historial y con los mismos permisos que tú. La idea fuerza: el MCP no hace al modelo más listo, le quita trabajo que no debería estar improvisando.">
-  <h2 class="title wide">Mismo prompt, dos agentes</h2>
+  data-notes="Lectura honesta de la demo. Publicar ya no es la diferencia: el agente sin MCP escribió su script, falló en una tontería, lo arregló y desplegó. Lo que cambia es todo lo demás: lo improvisa en cada ejecución, gasta más turnos, ejecuta lo que decide con tu sesión de az, y no deja historial ni sabe de entornos. El MCP aporta una interfaz fija, el estado (qué se publicó, dónde, desde dónde) y el mismo CLI para el pipeline.">
+  <h2 class="title wide">Publicar ya no es la diferencia</h2>
   <div class="body wide" style="top:12.6cqw">
     <table class="t">
-      <thead><tr><th>Criterio</th><th>Agente sin MCP</th><th>Agente con powerbi-mcp</th></tr></thead>
+      <thead><tr><th>Criterio</th><th>Agente sin MCP</th><th>Agente con powerbi-mcp-deploy</th></tr></thead>
       <tbody>
-        <tr><td>Cómo lo hace</td><td class="wait">Improvisa scripts contra la API REST</td><td class="ok">Tools deterministas: upload_semantic_model, upload_report</td></tr>
-        <tr><td>Lo que tiene que descubrir</td><td class="wait">base64, LRO, .platform, byPath → byConnection</td><td class="ok">Nada: va en la tool</td></tr>
-        <tr><td>Repetible</td><td class="ko">Cada ejecución, un script distinto</td><td class="ok">Mismo resultado cada vez</td></tr>
+        <tr><td>¿Publica?</td><td class="ok">Sí: su propio script, un fallo menor, lo corrige</td><td class="ok">Sí: 2 tool calls</td></tr>
+        <tr><td>Cómo lo hace</td><td class="wait">Lo reinventa en cada ejecución</td><td class="ok">Interfaz fija: siempre las mismas tools</td></tr>
+        <tr><td>Qué puede tocar</td><td class="wait">Lo que decida ejecutar con tu sesión de az</td><td class="ok">Solo lo que exponen las tools</td></tr>
         <tr><td>Historial</td><td class="ko">Ninguno</td><td class="ok">query_deployments · query_version_history</td></tr>
-        <tr><td>Siguiente paso</td><td>Copiar el script… y mantenerlo</td><td class="ok">El mismo CLI en GitHub Actions</td></tr>
+        <tr><td>Entornos y drift</td><td class="ko">No los conoce</td><td class="ok">promote · detección de divergencia</td></tr>
+        <tr><td>En el pipeline</td><td>Guardar el script… y mantenerlo</td><td class="ok">El mismo CLI en GitHub Actions</td></tr>
       </tbody>
     </table>
   </div>
+</section>
+
+<!-- 12d · ¿SIGUE HACIENDO FALTA EL MCP? -->
+<section class="slide" data-kicker="Key idea / Honest" data-kicker-color="yellow" data-panel="none"
+  data-notes="La pregunta incómoda, y la que me hago yo. Creé el MCP en junio de 2026: entonces el agente sin MCP tardaba muchísimo y fallaba mucho. Cinco meses después escribe el script, falla en una tontería, lo arregla y despliega. Así que hay que cuestionarse si el MCP es necesario para PUBLICAR. Respuesta: para publicar, cada vez menos. Lo que sigue ganando es lo demás: historial, entornos, drift, una interfaz fija y el mismo CLI en CI. Y buena parte de eso cabe en una skill: el conocimiento (cómo empaquetar, byConnection, convenciones) más un script versionado, con Git y las Releases como historial, que es justo lo que hace nuestro pipeline. El MCP compensa cuando quieres estado compartido y una interfaz que no dependa de cómo se levante hoy el modelo.">
+  <h2 class="title">¿Sigue haciendo falta el MCP?</h2>
+  <p class="subtitle">Junio 2026: sin MCP tardaba y fallaba mucho. Noviembre 2026: falla en una tontería, la arregla y despliega.</p>
+  <div class="cards">
+    <div class="card c-orange brackets" style="border-color:var(--orange)"><span class="br"></span><div class="num t-orange">01</div><h3>Agente solo</h3><p>Ya publica. Pero improvisa cada vez, gasta más turnos y no recuerda nada.</p><p><code>bueno para una vez</code></p></div>
+    <div class="card c-blue brackets" style="border-color:var(--blue)"><span class="br"></span><div class="num t-blue">02</div><h3>Skill</h3><p>Conocimiento + script versionado. Git y las Releases como historial. Sin servidor.</p><p><code>cubre buena parte de lo demás</code></p></div>
+    <div class="card c-green brackets" style="border-color:var(--green)"><span class="br"></span><div class="num t-green">03</div><h3>MCP + CLI</h3><p>Interfaz fija, estado compartido (entornos, drift, auditoría) y el mismo binario en CI.</p><p><code>cuando el estado importa</code></p></div>
+  </div>
+  <p class="callout"><b>Lo que ganamos ya no es publicar:</b> es todo lo demás. Y el modelo mejora cada mes: lo que hoy es un MCP, mañana puede ser una skill.</p>
 </section>
 
 <!-- 13 · SECCIÓN 03 -->
@@ -399,36 +413,38 @@ Mapeo de workspaces: manual (project-set-workspace, eliges nombres y puedes sepa
 
 <!-- 16 · DEMO DRIFT -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
-  data-status="mode: cli  ·  promote: Producción  ·  drift: DETECTED  ·  overwrite: blocked"
-  data-notes="DEMO 2 (≈4 min), la demo estrella. Mismo flujo desde terminal: cada comando tiene su tool MCP equivalente.
-Prepara: entornos y proyecto ya creados (enseña env-list y project-tree), D:\Proyectos\Ventas con subcarpetas Modelos e Informes.
+  data-status="mode: chat  ·  promote → Produccion  ·  drift: DETECTED  ·  agent: asks"
+  data-notes="DEMO 2 (≈6 min), la demo estrella, desde Claude Desktop con powerbi-mcp-deploy (fabric desactivado). Prompts: demos/GUION-DEMOS.md (Demo 2).
+Prepara: los tres workspaces AIVD Cadena … vacíos; si vas justo, crea entornos y proyecto antes (prompt 1).
 
-1. deploy a Desarrollo con --respect-local-structure: replica las carpetas en el workspace.
-2. promote a Integración: en memoria, sin tocar disco.
-3. Simula la urgencia: deploy directo a Producción.
-4. promote a Producción: compara el hash de Producción con lo último promocionado desde Integración, no coincide, y PARA.
-5. Confirma con --yes y enseña project-tree.
+1. Entornos (stage_order 10, 11, 12) y proyecto VentasAIVD con sus carpetas, hablando.
+2. deploy a AIVD Desarrollo desde demos\Powerbi\Ventas: crea las carpetas Ventas/Modelos y Ventas/Informes.
+3. promote a AIVD Integracion: en memoria, sin tocar disco.
+4. La urgencia: deploy directo a AIVD Produccion, saltándose la cadena.
+5. promote a AIVD Produccion: el MCP compara con lo último promocionado, ve un deploy directo, devuelve needs_confirmation y el AGENTE PARA y te pregunta. Lee el drift en voz alta.
+6. «Sí, confirmo» → promote con confirm_drift y árbol de despliegue.
 
-Mensaje: nada de esto necesita YAML ni Premium. La disciplina la impone la herramienta, no la memoria de cada uno.">
+Mensaje: nada de esto necesita YAML ni Premium. La disciplina la impone la herramienta, y el agente no puede saltársela sin que tú lo confirmes. Lo mismo existe en el CLI (pbi_cli.py promote … --yes).">
   <h2 class="title" style="top:5.6cqw">Demo · promoción y drift</h2>
-  <div class="live-main window"><span class="wtitle">pwsh · pbi_cli.py</span>
-<pre class="transcript"><span class="c" style="color:var(--muted)"># entornos y proyecto ya creados (env-create · project-create)</span>
-<span class="r">$</span> pbi_cli.py deploy  Ventas Desarrollo D:\Proyectos\Ventas --respect-local-structure
-<span class="r">$</span> pbi_cli.py promote Ventas Integración
-<span class="r">$</span> pbi_cli.py deploy  Ventas Producción D:\Proyectos\Ventas   <span style="color:var(--muted)"># hotfix</span>
-<span class="r">$</span> pbi_cli.py promote Ventas Producción
-
-<span class="h">⚠ Divergencia detectada respecto al entorno origen (Integración):</span>
-<span class="h">    [SemanticModel] ModeloVentas:</span>
-<span class="h">      - el último cambio en este entorno fue un 'deploy'</span>
-<span class="h">        directo, no una promoción</span>
-  ¿Confirmas la sobrescritura? [y/N]
-
-<span class="r">$</span> pbi_cli.py promote Ventas Producción --yes
-<span class="r">$</span> pbi_cli.py project-tree Ventas</pre>
+  <div class="live-main window"><span class="wtitle">claude-desktop · powerbi-mcp-deploy</span>
+<pre class="transcript"><span class="u">Crea los entornos AIVD Desarrollo · Integracion · Produccion</span>
+<span class="u">(10 · 11 · 12) y el proyecto VentasAIVD con sus carpetas</span>
+  <span class="t">⚙ configure_environment ×3 · create_project · add_project_artifact ×2</span>
+<span class="u">Despliégalo en AIVD Desarrollo desde demos\Powerbi\Ventas</span>
+  <span class="t">⚙ deploy_project</span> → Ventas/Modelos · Ventas/Informes
+<span class="u">Promociónalo a AIVD Integracion</span>
+  <span class="t">⚙ promote_project</span> → <span class="r">✓ sin tocar disco</span>
+<span class="u">Urgente: despliega directo en AIVD Produccion</span>
+  <span class="t">⚙ deploy_project</span> → <span class="h">⚠ se salta la cadena</span>
+<span class="u">Promociona a AIVD Produccion</span>
+  <span class="t">⚙ promote_project</span> → <span class="h">needs_confirmation</span>
+  <span class="h">⚠ Divergencia: el último cambio fue un deploy directo</span>
+  <span class="h">  «¿Confirmas que sobrescribo lo que hay en Producción?»</span>
+<span class="u">Sí, confirmo. Enséñame el árbol</span>
+  <span class="t">⚙ promote_project(confirm_drift) · get_deployment_tree</span></pre>
   </div>
   <div class="live-side"><h4>No olvidar</h4>
-    <ul><li>promote ≠ deploy</li><li>stage_order manda</li><li>leer el drift en voz alta</li><li>chat = CLI</li></ul>
+    <ul><li>promote ≠ deploy</li><li>stage_order manda</li><li>el agente para y pregunta</li><li>chat = CLI</li></ul>
     <div class="foot">watch → explain → prove</div></div>
 </section>
 
@@ -675,9 +691,11 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
       <div class="arrow">→</div>
       <div class="step hot"><div class="num t-green">02 · dev</div><h3>AIVD Ventas DEV</h3><p><code>upload-model</code> + <code>upload-report --rebind</code></p></div>
       <div class="arrow">→</div>
-      <div class="step human"><div class="num t-orange">03 · PR a main</div><h3>Plan</h3><p>Qué hay en PROD y qué cambia. main sellada: solo por PR</p></div>
+      <div class="step human"><div class="num t-orange">03 · PR a main</div><h3>Plan + perf</h3><p>Qué cambia en PROD. Puerta DAX: candidato vs PROD ×2</p></div>
       <div class="arrow">→</div>
-      <div class="step hot"><div class="num t-green">04 · merge</div><h3>AIVD Ventas PROD</h3><p>Despliegue + Release <code>prod-AAAAMMDD-HHMMSS</code></p></div>
+      <div class="step"><div class="num t-blue">04 · merge</div><h3>Perf gate</h3><p>Falla si degradación ≥ 2×. Bloquea deploy-prod</p></div>
+      <div class="arrow">→</div>
+      <div class="step hot"><div class="num t-green">05 · merge</div><h3>AIVD Ventas PROD</h3><p>Despliegue + Release <code>prod-AAAAMMDD-HHMMSS</code></p></div>
     </div>
   </div>
   <p class="callout"><b>Sin secretos:</b> OIDC → <code>azure/login</code> → <code>pbi_cli.py auth --method az_cli</code>. Cada despliegue a PROD es una versión con su PBIP, recuperable.</p>
@@ -686,7 +704,7 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
 <!-- 25c · DEMO CI/CD + HISTORIAL + ROLLBACK -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
   data-status="v1 → v2 (Margen neto) → v3 (Ventas netas rota) → rollback a v2"
-  data-notes="DEMO CI/CD (≈8 min). Guion: demos/GUION-DEMOS.md (Demos 2 y 3).
+  data-notes="DEMO CI/CD (≈8 min). Guion: demos/GUION-DEMOS.md (Demos 3 y 4).
 1. En dev: ./demos/cambios/v2-margen-neto.ps1, commit y push → Actions despliega en DEV. Enseña la medida nueva en el portal.
 2. Intenta git push origin dev:main → rechazado: main está sellada.
 3. gh pr create → validate + plan en verde → merge → PROD + Release v2.
@@ -710,7 +728,7 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
   </div>
   <div class="live-side"><h4>No olvidar</h4>
     <ul><li>push a main rechazado</li><li>summary del plan</li><li>Releases = versiones</li><li>rollback ≠ revert</li></ul>
-    <div class="foot">demos/GUION-DEMOS.md · Demos 2-3</div></div>
+    <div class="foot">demos/GUION-DEMOS.md · Demos 3-4</div></div>
 </section>
 
 <!-- 26 · VERSUS -->
