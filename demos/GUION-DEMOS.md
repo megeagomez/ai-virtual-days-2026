@@ -1,7 +1,7 @@
 # Guion de demos · DevOps conversacional (AI Virtual Days 2026)
 
 Los bloques `text` son **prompts para copiar y pegar** en el chat. Los bloques `powershell` se escriben en la terminal.
-Diapos asociadas: 10 (Demo 0), 13–14 (Demo 1) y 28–29 (Demos 2 y 3).
+Diapos asociadas: 10 (Demo 0), 13–15 (Demo 1) y 29–30 (Demos 2 y 3).
 
 | Pieza | Valor |
 |---|---|
@@ -61,9 +61,11 @@ Di en voz alta: el MCP parchea `definition.pbir` de `byPath` a `byConnection` pa
 
 ---
 
-## Demo 1 · El mismo encargo, con y sin MCP (≈8 min · diapos 13–14)
+## Demo 1 · El mismo encargo, con y sin MCP (≈8 min · diapos 13–15)
 
-**Idea**: el MCP no hace al modelo más listo; le quita el trabajo que no debería improvisar.
+**Idea (honesta)**: los dos agentes publican. Cuando creé el MCP (junio de 2026) el agente sin MCP tardaba muchísimo más y fallaba
+mucho más; hoy escribe su propio script de PowerShell, falla en una tontería, lo arregla y despliega. **Publicar ya no es la diferencia:
+lo es todo lo demás** (historial, entornos, interfaz fija, el mismo CLI en CI), y buena parte de eso cabe en una skill (diapo 15).
 Lanza primero el agente **sin** MCP (es el que tarda) y, mientras trabaja, el agente **con** MCP.
 
 ### 1A · Agente SIN MCP
@@ -87,8 +89,9 @@ No modifiques los ficheros originales: si necesitas transformarlos, trabaja sobr
 Cuando termines, dime qué hay publicado en el workspace y enséñame el historial de despliegues de ese workspace.
 ```
 
-Mientras trabaja, señala en voz alta lo que tiene que **descubrir solo**:
-token de Fabric · empaquetar cada fichero en base64 · excluir `.platform` y `.pbi/` · respuesta 202 y sondeo de la operación · reescribir `definition.pbir` de `byPath` a `byConnection` · y al final **no existe historial**.
+Lo esperable hoy (ensayado): escribe un script de PowerShell, **falla por un detalle, lo corrige solo y publica**. No lo vendas como fracaso.
+Mientras trabaja, señala lo que está **reinventando**: token de Fabric · cada fichero en base64 · excluir `.platform` y `.pbi/` ·
+respuesta 202 y sondeo · `definition.pbir` de `byPath` a `byConnection`. Y al final pregúntale por el historial: **no existe**.
 
 > **Plan B** si se atasca: `./demos/sin-mcp/deploy-rest.ps1 -Workspace "AIVD Demo Agente sin MCP" -PbipDir src/Powerbi -Name GreatAdventuresVentas`
 > Enseña el fichero: ~100 líneas para lo que el MCP resuelve con una tool.
@@ -132,11 +135,15 @@ Con MCP: `query_deployments` / `query_version_history` y `download_workspace`. S
 | ¿Queda historial? | | |
 | ¿Lo repetiría igual mañana? | | |
 
+**Cierre (diapo 15 · ¿sigue haciendo falta el MCP?)**: para publicar, cada vez menos. Agente solo = bueno para una vez.
+Skill = conocimiento + script versionado, con Git y Releases como historial (justo lo que hace nuestro pipeline).
+MCP + CLI = interfaz fija y estado compartido (entornos, drift, auditoría). «Lo que hoy es un MCP, mañana puede ser una skill».
+
 **Puente a la Demo 2**: «Lo que el agente hace con el MCP es lo mismo que hace el CLI del MCP. Y el CLI se puede poner en una GitHub Action».
 
 ---
 
-## Demo 2 · dev → DEV, PR → PROD con main sellada (≈5 min · diapo 28–29)
+## Demo 2 · dev → DEV, PR → PROD con main sellada (≈5 min · diapos 29–30)
 
 Enseña antes `.github/workflows/powerbi-cicd.yml` (30 segundos): `validate` → `deploy-dev` / `plan-prod` / `deploy-prod`, todo con `pbi_cli.py`.
 Autenticación: OIDC del app registration **PyUploader** → `azure/login` → `pbi_cli.py auth --method az_cli`. Sin secretos.
@@ -180,7 +187,7 @@ Abre un pull request de dev a main con los cambios del modelo GreatAdventuresVen
 
 ---
 
-## Demo 3 · Historial de versiones y vuelta atrás (≈5 min · diapo 29)
+## Demo 3 · Historial de versiones y vuelta atrás (≈5 min · diapo 30)
 
 ### 3.1 · Un cambio que sale mal (v3)
 

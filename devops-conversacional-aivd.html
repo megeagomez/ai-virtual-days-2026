@@ -538,49 +538,63 @@ PBIX es otro camino (Import API): sube el binario y, si el nombre existe, por de
 <!-- 12b · DEMO AGÉNTICA CON vs SIN MCP -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
   data-status="mode: agent  ·  same prompt  ·  A: powerbi-mcp-deploy (PowerBiDeploymentMCP)  ·  B: az + REST (no MCP)"
-  data-notes="DEMO agéntica (≈8 min). Guion completo y prompts para copiar: demos/GUION-DEMOS.md (Demo 1).
+  data-notes="DEMO agéntica (≈8 min). Guion y prompts: demos/GUION-DEMOS.md (Demo 1).
 Mismo prompt, mismo PBIP (src/Powerbi), dos workspaces vacíos: «AIVD Demo Agente MCP» y «AIVD Demo Agente sin MCP».
-1. Lanza primero el agente SIN MCP (Claude Code con --strict-mcp-config y config vacía): tarda más, así que corre mientras hablas.
+1. Lanza primero el agente SIN MCP: escribe su propio script de PowerShell (token, partes en base64, operación larga, byPath → byConnection), falla en un detalle, lo corrige solo y publica.
 2. Lanza el agente CON MCP: 2-3 tool calls y listo.
-3. Cuenta en voz alta lo que el agente sin MCP tiene que descubrir: token de Fabric, partes en base64 sin .platform ni .pbi, operaciones largas (202 + sondeo), reescribir definition.pbir de byPath a byConnection.
-4. Pregunta a los dos: «¿qué se ha desplegado hoy en ese workspace?». Con MCP: query_deployments. Sin MCP: no hay registro.
-Plan B si el agente sin MCP se atasca: ./demos/sin-mcp/deploy-rest.ps1 (enséñalo: ~100 líneas para lo que el MCP hace en una tool).">
+3. Sé honesto: los dos publican. Cuando creé el MCP en junio de 2026, el agente sin MCP tardaba muchísimo más y fallaba mucho más. Hoy llega.
+4. La diferencia está en la siguiente pregunta: «¿qué se ha desplegado hoy en ese workspace, quién y desde dónde?». Con MCP: query_deployments. Sin MCP: no hay registro.
+Plan B si el agente sin MCP se atasca: ./demos/sin-mcp/deploy-rest.ps1.">
   <h2 class="title" style="top:5.6cqw">Demo · mismo encargo, con y sin MCP</h2>
   <div class="live-main window"><span class="wtitle">claude · mismo prompt · dos agentes</span>
 <pre class="transcript"><span class="u">Publica el PBIP de src\Powerbi en «AIVD Demo Agente …»</span>
 <span class="u">y deja el informe enlazado al modelo de ese workspace</span>
 <span class="h">── A · con powerbi-mcp-deploy ────────────────────────</span>
-  <span class="t">⚙ upload_semantic_model</span> → created
-  <span class="t">⚙ upload_report(rebind_to_model)</span> → created · enlazado
-  <span class="t">⚙ query_deployments</span> → quién, cuándo, desde dónde
-<span class="h">── B · sin MCP (az + API REST) ───────────────────────</span>
-  <span class="t">▶ az account get-access-token · GET /workspaces</span>
-  <span class="t">▶ empaquetar partes base64 · ¿.platform? ¿.pbi?</span>
-  <span class="t">▶ POST /items → 202 → sondear la operación…</span>
-  <span class="e" style="color:var(--orange)">✗ informe: byPath no vale en el servicio → byConnection</span>
-  <span class="e" style="color:var(--orange)">✗ «¿qué se desplegó hoy?» → no queda registro</span></pre>
+  <span class="t">⚙ upload_semantic_model · upload_report(rebind)</span>
+  <span class="r">✓ publicado y enlazado · 2 tool calls</span>
+<span class="h">── B · sin MCP (az + PowerShell) ─────────────────────</span>
+  <span class="t">✎ escribe deploy.ps1: token · base64 · LRO · byConnection</span>
+  <span class="e" style="color:var(--orange)">✗ falla por un detalle</span> → <span class="t">lo corrige solo</span>
+  <span class="r">✓ publicado y enlazado</span>
+<span class="u">¿Qué se desplegó hoy, quién y desde dónde?</span>
+  <span class="t">A ⚙ query_deployments</span> → <span class="r">historial completo</span>
+  <span class="t">B</span> → <span class="e" style="color:var(--orange)">no queda registro</span></pre>
   </div>
   <div class="live-side"><h4>Marcador</h4>
-    <ul><li>tiempo hasta publicado</li><li>nº de llamadas</li><li>errores y reintentos</li><li>¿queda historial?</li><li>¿lo repetiría igual mañana?</li></ul>
+    <ul><li>¿publica? <b>los dos</b></li><li>tiempo y reintentos</li><li>¿queda historial?</li><li>¿mañana hará lo mismo?</li><li>¿y en el pipeline?</li></ul>
     <div class="foot">demos/GUION-DEMOS.md · Demo 1</div></div>
 </section>
 
 <!-- 12c · RESULTADO CON vs SIN MCP -->
 <section class="slide" data-kicker="Data / Compare" data-kicker-color="cyan" data-panel="none"
-  data-notes="Cierre de la demo agéntica. El agente sin MCP puede llegar, pero improvisa: cada vez escribe un script distinto, con tus credenciales en la terminal y sin dejar rastro. El MCP convierte la misma intención en tools deterministas, con historial y con los mismos permisos que tú. La idea fuerza: el MCP no hace al modelo más listo, le quita trabajo que no debería estar improvisando.">
-  <h2 class="title wide">Mismo prompt, dos agentes</h2>
+  data-notes="Lectura honesta de la demo. Publicar ya no es la diferencia: el agente sin MCP escribió su script, falló en una tontería, lo arregló y desplegó. Lo que cambia es todo lo demás: lo improvisa en cada ejecución, gasta más turnos, ejecuta lo que decide con tu sesión de az, y no deja historial ni sabe de entornos. El MCP aporta una interfaz fija, el estado (qué se publicó, dónde, desde dónde) y el mismo CLI para el pipeline.">
+  <h2 class="title wide">Publicar ya no es la diferencia</h2>
   <div class="body wide" style="top:12.6cqw">
     <table class="t">
       <thead><tr><th>Criterio</th><th>Agente sin MCP</th><th>Agente con powerbi-mcp-deploy</th></tr></thead>
       <tbody>
-        <tr><td>Cómo lo hace</td><td class="wait">Improvisa scripts contra la API REST</td><td class="ok">Tools deterministas: upload_semantic_model, upload_report</td></tr>
-        <tr><td>Lo que tiene que descubrir</td><td class="wait">base64, LRO, .platform, byPath → byConnection</td><td class="ok">Nada: va en la tool</td></tr>
-        <tr><td>Repetible</td><td class="ko">Cada ejecución, un script distinto</td><td class="ok">Mismo resultado cada vez</td></tr>
+        <tr><td>¿Publica?</td><td class="ok">Sí: su propio script, un fallo menor, lo corrige</td><td class="ok">Sí: 2 tool calls</td></tr>
+        <tr><td>Cómo lo hace</td><td class="wait">Lo reinventa en cada ejecución</td><td class="ok">Interfaz fija: siempre las mismas tools</td></tr>
+        <tr><td>Qué puede tocar</td><td class="wait">Lo que decida ejecutar con tu sesión de az</td><td class="ok">Solo lo que exponen las tools</td></tr>
         <tr><td>Historial</td><td class="ko">Ninguno</td><td class="ok">query_deployments · query_version_history</td></tr>
-        <tr><td>Siguiente paso</td><td>Copiar el script… y mantenerlo</td><td class="ok">El mismo CLI en GitHub Actions</td></tr>
+        <tr><td>Entornos y drift</td><td class="ko">No los conoce</td><td class="ok">promote · detección de divergencia</td></tr>
+        <tr><td>En el pipeline</td><td>Guardar el script… y mantenerlo</td><td class="ok">El mismo CLI en GitHub Actions</td></tr>
       </tbody>
     </table>
   </div>
+</section>
+
+<!-- 12d · ¿SIGUE HACIENDO FALTA EL MCP? -->
+<section class="slide" data-kicker="Key idea / Honest" data-kicker-color="yellow" data-panel="none"
+  data-notes="La pregunta incómoda, y la que me hago yo. Creé el MCP en junio de 2026: entonces el agente sin MCP tardaba muchísimo y fallaba mucho. Cinco meses después escribe el script, falla en una tontería, lo arregla y despliega. Así que hay que cuestionarse si el MCP es necesario para PUBLICAR. Respuesta: para publicar, cada vez menos. Lo que sigue ganando es lo demás: historial, entornos, drift, una interfaz fija y el mismo CLI en CI. Y buena parte de eso cabe en una skill: el conocimiento (cómo empaquetar, byConnection, convenciones) más un script versionado, con Git y las Releases como historial, que es justo lo que hace nuestro pipeline. El MCP compensa cuando quieres estado compartido y una interfaz que no dependa de cómo se levante hoy el modelo.">
+  <h2 class="title">¿Sigue haciendo falta el MCP?</h2>
+  <p class="subtitle">Junio 2026: sin MCP tardaba y fallaba mucho. Noviembre 2026: falla en una tontería, la arregla y despliega.</p>
+  <div class="cards">
+    <div class="card c-orange brackets" style="border-color:var(--orange)"><span class="br"></span><div class="num t-orange">01</div><h3>Agente solo</h3><p>Ya publica. Pero improvisa cada vez, gasta más turnos y no recuerda nada.</p><p><code>bueno para una vez</code></p></div>
+    <div class="card c-blue brackets" style="border-color:var(--blue)"><span class="br"></span><div class="num t-blue">02</div><h3>Skill</h3><p>Conocimiento + script versionado. Git y las Releases como historial. Sin servidor.</p><p><code>cubre buena parte de lo demás</code></p></div>
+    <div class="card c-green brackets" style="border-color:var(--green)"><span class="br"></span><div class="num t-green">03</div><h3>MCP + CLI</h3><p>Interfaz fija, estado compartido (entornos, drift, auditoría) y el mismo binario en CI.</p><p><code>cuando el estado importa</code></p></div>
+  </div>
+  <p class="callout"><b>Lo que ganamos ya no es publicar:</b> es todo lo demás. Y el modelo mejora cada mes: lo que hoy es un MCP, mañana puede ser una skill.</p>
 </section>
 
 <!-- 13 · SECCIÓN 03 -->
