@@ -3,6 +3,7 @@
 #   push a dev            → validar → desplegar en  AIVD Ventas DEV
 #   pull request a main   → validar → "plan": qué hay ahora en PROD y qué se va a reemplazar
 #   merge en main         → validar → desplegar en  AIVD Ventas PROD → Release prod-AAAAMMDD-HHMMSS
+#   Run workflow (manual) → igual que un push en la rama elegida (dev → DEV, main → PROD)
 #
 # main está sellada: solo entra código por PR con el check "validate" en verde,
 # así que "push a main" solo ocurre al hacer merge de un PR.
@@ -64,7 +65,7 @@ jobs:
 
   # ─────────────────────────── 3. Push a dev → DEV ───────────────────────────
   deploy-dev:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/dev'
     needs: validate
     runs-on: windows-latest
     environment: dev
@@ -85,7 +86,7 @@ jobs:
 
   # ─────────────────────────── 4. Merge en main → PROD + Release ───────────────────────────
   deploy-prod:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: validate
     runs-on: windows-latest
     environment: prod
