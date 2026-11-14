@@ -84,10 +84,49 @@ jobs:
         shell: pwsh
         run: '"### ✅ DEV actualizado`n`n**$env:WS_DEV** ← ``$env:GITHUB_SHA`` ($env:GITHUB_ACTOR)" >> $env:GITHUB_STEP_SUMMARY'
 
-  # ─────────────────────────── 4. Merge en main → PROD + Release ───────────────────────────
+  # ─────────────────────────── 4. perf-gate: puerta de rendimiento DAX ───────────────────────────
+  perf-gate:
+    name: "perf-gate · degradación ×2"
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')
+    needs: validate
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pbi-cli
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Instalar requests
+        shell: pwsh
+        run: python -m pip install --quiet requests
+      - name: Puerta de rendimiento DAX
+        shell: pwsh
+        env:
+          PERF_MAX_RATIO: ${{ vars.PERF_MAX_RATIO || '2.0' }}
+          PERF_MIN_MS: ${{ vars.PERF_MIN_MS || '500' }}
+        run: |
+          python ci/perf_gate.py `
+            --json tests/perf/baseline-performance-analyzer.json `
+            --pbip-dir src/Powerbi/GreatAdventuresVentas.Report/definition/pages `
+            --baseline-ws "$env:WS_PROD" `
+            --candidate-ws "$env:WS_DEV" `
+            --dataset "$env:PBI_NAME" `
+            --evidence-dir perf-evidence
+      - name: Subir evidencias
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-evidence-${{ github.run_id }}
+          path: perf-evidence/
+          if-no-files-found: ignore
+
+  # ─────────────────────────── 5. Merge en main → PROD + Release ───────────────────────────
   deploy-prod:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: validate
+    needs: [validate, perf-gate]
     runs-on: windows-latest
     environment: prod
     concurrency: { group: pbi-prod, cancel-in-progress: false }

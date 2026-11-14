@@ -691,9 +691,11 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
       <div class="arrow">→</div>
       <div class="step hot"><div class="num t-green">02 · dev</div><h3>AIVD Ventas DEV</h3><p><code>upload-model</code> + <code>upload-report --rebind</code></p></div>
       <div class="arrow">→</div>
-      <div class="step human"><div class="num t-orange">03 · PR a main</div><h3>Plan</h3><p>Qué hay en PROD y qué cambia. main sellada: solo por PR</p></div>
+      <div class="step human"><div class="num t-orange">03 · PR a main</div><h3>Plan + perf</h3><p>Qué cambia en PROD. Puerta DAX: candidato vs PROD ×2</p></div>
       <div class="arrow">→</div>
-      <div class="step hot"><div class="num t-green">04 · merge</div><h3>AIVD Ventas PROD</h3><p>Despliegue + Release <code>prod-AAAAMMDD-HHMMSS</code></p></div>
+      <div class="step"><div class="num t-blue">04 · merge</div><h3>Perf gate</h3><p>Falla si degradación ≥ 2×. Bloquea deploy-prod</p></div>
+      <div class="arrow">→</div>
+      <div class="step hot"><div class="num t-green">05 · merge</div><h3>AIVD Ventas PROD</h3><p>Despliegue + Release <code>prod-AAAAMMDD-HHMMSS</code></p></div>
     </div>
   </div>
   <p class="callout"><b>Sin secretos:</b> OIDC → <code>azure/login</code> → <code>pbi_cli.py auth --method az_cli</code>. Cada despliegue a PROD es una versión con su PBIP, recuperable.</p>

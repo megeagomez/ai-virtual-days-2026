@@ -21,8 +21,8 @@ desplegar Power BI hablando con un agente y, con el mismo CLI, en GitHub Actions
 | Evento | Qué pasa |
 |---|---|
 | push a `dev` | `validate` → `deploy-dev`: publica el PBIP en **AIVD Ventas DEV** |
-| pull request a `main` | `validate` + `plan-prod`: qué hay en PROD y qué ficheros cambian |
-| merge en `main` | `validate` → `deploy-prod`: publica en **AIVD Ventas PROD** y crea la Release `prod-AAAAMMDD-HHMMSS` con el PBIP |
+| pull request a `main` | `validate` + `plan-prod` + `perf-gate`: qué hay en PROD, qué ficheros cambian y si las consultas DAX degradan ≥ 2× |
+| merge en `main` | `validate` + `perf-gate` → `deploy-prod`: publica en **AIVD Ventas PROD** y crea la Release `prod-AAAAMMDD-HHMMSS` con el PBIP (bloqueado si perf-gate falla) |
 | manual `rollback-prod` | redespliega el PBIP de una Release concreta (y lo registra como versión nueva) |
 
 `main` está protegida: solo admite cambios por PR con el check `validate` en verde.

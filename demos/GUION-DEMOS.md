@@ -315,6 +315,71 @@ Lista las versiones publicadas en PROD (releases prod-*), dime cuál fue la últ
 
 ---
 
+## Demo 3b · Puerta de rendimiento (opcional · ≈4 min)
+
+> **Cuándo enseñarla:** si el tiempo lo permite, entre las Demos 3 y 4 o al final de la charla.
+> Muestra que el pipeline no solo valida la estructura del PBIP, sino que también bloquea
+> degradaciones de rendimiento antes de llegar a PROD.
+
+### Preparación previa (antes de la charla)
+
+- Datos cargados en DEV y PROD (el modelo vacío no sirve para medir).
+- `src` en su versión normal (sin v4 aplicada): `git status` limpio.
+
+### 3b.1 · Aplicar la medida lenta y desplegar en DEV
+
+```powershell
+./demos/cambios/v4-medida-lenta.ps1
+git commit -am "v4: Margen bruto lento (demo perf-gate)"
+git push
+gh run watch                    # validate → deploy-dev
+```
+
+La medida `'Margen bruto'` pasa a ser una iteración SUMX fila a fila; el modelo semántico se
+despliega en **AIVD Ventas DEV**.
+
+### 3b.2 · Abrir PR y observar perf-gate en rojo
+
+```powershell
+gh pr create --base main --head dev --title "v4: Margen bruto lento" --body "Demo perf-gate"
+gh pr checks --watch
+```
+
+En la lista de checks aparece `perf-gate · degradación ×2`. Mientras mide, puedes explicar
+qué está haciendo: lanza cada consulta del JSON de baseline contra PROD (baseline) y DEV
+(candidato), con 1 calentamiento + 3 ejecuciones → mediana.
+
+Cuando termina, el check queda en **rojo**. Ábrelo en GitHub Actions y enseña el **Job Summary**:
+
+| Página | Baseline (ms) | Candidato (ms) | Ratio | Estado |
+|--------|:---:|:---:|:---:|:---:|
+| Resumen ejecutivo | X | ≥ 2X | ≥ 2.0× | ❌ **FALLO** |
+| Producto y rentabilidad | X | ≥ 2X | ≥ 2.0× | ❌ **FALLO** |
+| … | … | … | … | ✅ |
+
+Señala también la consulta más lenta y el artifact `perf-evidence-*.json` con todas las medidas.
+
+### 3b.3 · Deshacer y verificar que perf-gate pasa en verde
+
+```powershell
+./demos/cambios/v4-medida-lenta.ps1 -Deshacer
+git commit -am "revert v4: restaura Margen bruto"
+git push
+gh pr checks --watch            # perf-gate reaparece en verde
+```
+
+Cuando `perf-gate` vuelve a verde, la PR puede mergearse (y al mergear, `deploy-prod`
+solo se ejecuta si `perf-gate` pasa, porque depende de él).
+
+### Qué mostrar en el resumen del job
+
+- La tabla de páginas con baseline / candidato / ratio / ✅/❌.
+- La consulta DAX más lenta de las páginas degradadas.
+- El artifact `perf-evidence-*.json` descargable.
+- La frase clave: «`deploy-prod` tiene `needs: [validate, perf-gate]`; sin verde aquí, no hay PROD».
+
+---
+
 ## Volver al estado inicial tras un ensayo
 
 ```powershell
