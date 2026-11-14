@@ -1,0 +1,95 @@
+cultureInfo es-ES
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "cobros.deuda_030_días": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Cobros",
+			          "ConceptualProperty": "Deuda 0–30 días"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "0–30 días": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "cobros.deuda_3160_días": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Cobros",
+			          "ConceptualProperty": "Deuda 31–60 días"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "31–60 días": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "cobros.deuda_6190_días": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Cobros",
+			          "ConceptualProperty": "Deuda 61–90 días"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "61–90 días": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "cobros.deuda_más_de_90_días": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Cobros",
+			          "ConceptualProperty": "Deuda más de 90 días"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Más de 90 días": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

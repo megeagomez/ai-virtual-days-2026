@@ -679,9 +679,9 @@ Prepara: rama pbi-state con la DuckDB, environments de GitHub con reviewer, una 
   data-status="branch: dev → AIVD Ventas DEV  ·  PR → main (sellada) → AIVD Ventas PROD  ·  auth: OIDC → az_cli"
   data-notes="El flujo que vamos a ver en vivo, en github.com/megeagomez/ai-virtual-days-2026.
 Push a dev: validar el PBIP y desplegar en AIVD Ventas DEV con el CLI del MCP.
-PR a main: validar y «plan»: qué hay ahora en PROD y qué ficheros cambian.
-main está sellada: nadie hace push directo; solo entra por PR con el check validate en verde.
-Merge: despliegue en AIVD Ventas PROD y Release prod-AAAAMMDD-HHMMSS con el PBIP comprimido. Esa Release ES la versión.
+PR a main: validate + plan-prod + perf-gate (tres checks). perf-gate lanza cada consulta DAX del JSON de baseline contra PROD (baseline) y DEV (candidato) con 1 calentamiento + 3 ejecuciones → mediana. Si alguna página tarda ≥ 2× y supera 500 ms, el check falla y el PR no puede mergearse.
+main está sellada: nadie hace push directo; solo entra por PR con validate y perf-gate en verde.
+Merge: perf-gate vuelve a ejecutarse; deploy-prod depende de él (needs: [validate, perf-gate]). Despliegue en AIVD Ventas PROD y Release prod-AAAAMMDD-HHMMSS con el PBIP comprimido.
 Autenticación: app registration con credencial federada (OIDC), sin secretos; azure/login y pbi_cli.py auth --method az_cli.">
   <h2 class="title">dev → DEV · PR → PROD</h2>
   <p class="subtitle">El mismo CLI que usa el agente, ahora desatendido en GitHub Actions.</p>
@@ -691,11 +691,9 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
       <div class="arrow">→</div>
       <div class="step hot"><div class="num t-green">02 · dev</div><h3>AIVD Ventas DEV</h3><p><code>upload-model</code> + <code>upload-report --rebind</code></p></div>
       <div class="arrow">→</div>
-      <div class="step human"><div class="num t-orange">03 · PR a main</div><h3>Plan + perf</h3><p>Qué cambia en PROD. Puerta DAX: candidato vs PROD ×2</p></div>
+      <div class="step human"><div class="num t-orange">03 · PR a main</div><h3>Plan · perf gate</h3><p>Qué cambia en PROD. Puerta DAX: candidato vs PROD, ratio &lt; 2× para poder mergear</p></div>
       <div class="arrow">→</div>
-      <div class="step"><div class="num t-blue">04 · merge</div><h3>Perf gate</h3><p>Falla si degradación ≥ 2×. Bloquea deploy-prod</p></div>
-      <div class="arrow">→</div>
-      <div class="step hot"><div class="num t-green">05 · merge</div><h3>AIVD Ventas PROD</h3><p>Despliegue + Release <code>prod-AAAAMMDD-HHMMSS</code></p></div>
+      <div class="step hot"><div class="num t-green">04 · merge</div><h3>Perf ✓ → PROD</h3><p>Despliegue + Release <code>prod-…</code> solo si perf gate en verde</p></div>
     </div>
   </div>
   <p class="callout"><b>Sin secretos:</b> OIDC → <code>azure/login</code> → <code>pbi_cli.py auth --method az_cli</code>. Cada despliegue a PROD es una versión con su PBIP, recuperable.</p>
@@ -707,11 +705,13 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
   data-notes="DEMO CI/CD (≈8 min). Guion: demos/GUION-DEMOS.md (Demos 3 y 4).
 1. En dev: ./demos/cambios/v2-margen-neto.ps1, commit y push → Actions despliega en DEV. Enseña la medida nueva en el portal.
 2. Intenta git push origin dev:main → rechazado: main está sellada.
-3. gh pr create → validate + plan en verde → merge → PROD + Release v2.
+3. gh pr create → validate + plan-prod + perf-gate en verde → merge → PROD + Release v2.
+   Enseña el Job Summary del perf-gate: tabla de páginas, ratios ~1.0×, sin degradación.
 4. Repite con ./demos/cambios/v3-error-ventas-netas.ps1 (o tenlo ya hecho): PROD enseña ventas infladas.
 5. Historial: pestaña Releases o gh release list. Cada versión tiene commit, autor, ejecución y el PBIP.
-6. Rollback: gh workflow run rollback-prod -f version=&lt;tag v2&gt; → PROD vuelve a v2 y queda registrado como versión nueva.
-7. Remata: el rollback apaga el fuego; git revert arregla la fuente (si no, el próximo merge vuelve a subir v3).">
+6. Rollback: gh workflow run rollback-prod -f version=<tag v2> → PROD vuelve a v2 y queda registrado como versión nueva.
+7. Remata: el rollback apaga el fuego; git revert arregla la fuente (si no, el próximo merge vuelve a subir v3).
+DEMO 3b (opcional, ≈4 min): ver guion Demo 3b. Aplica v4-medida-lenta.ps1 → PR → perf-gate falla ×3 → revierte → verde → merge.">
   <h2 class="title" style="top:5.6cqw">Demo · versiones y vuelta atrás</h2>
   <div class="live-main window"><span class="wtitle">terminal · git · gh · github actions</span>
 <pre class="transcript"><span class="u">./demos/cambios/v2-margen-neto.ps1 ; git push origin dev</span>
@@ -719,7 +719,7 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
 <span class="u">git push origin dev:main</span>
   <span class="e" style="color:var(--orange)">✗ protected branch: main solo admite PR</span>
 <span class="u">gh pr create --base main ; gh pr merge</span>
-  <span class="t">▶ validate · plan-prod → deploy-prod</span>  <span class="r">✓ prod-…v2</span>
+  <span class="t">▶ validate · plan-prod · perf-gate ✓ → deploy-prod</span>  <span class="r">✓ prod-…v2</span>
   <span class="h">✎ v3: «Ventas netas» suma el bruto → cifras infladas en PROD</span>
 <span class="u">gh release list</span>
   prod-…v3 · prod-…v2 · prod-…v1   <span class="h">← commit · autor · PBIP</span>
@@ -727,17 +727,44 @@ Autenticación: app registration con credencial federada (OIDC), sin secretos; a
   <span class="r">✓ PROD = v2 · registrado como «ROLLBACK a prod-…v2»</span></pre>
   </div>
   <div class="live-side"><h4>No olvidar</h4>
-    <ul><li>push a main rechazado</li><li>summary del plan</li><li>Releases = versiones</li><li>rollback ≠ revert</li></ul>
+    <ul><li>push a main rechazado</li><li>summary de plan-prod</li><li>summary de perf-gate</li><li>Releases = versiones</li><li>rollback ≠ revert</li></ul>
     <div class="foot">demos/GUION-DEMOS.md · Demos 3-4</div></div>
+</section>
+
+<!-- 25d · DEMO PERF GATE (opcional) -->
+<section class="slide" data-kicker="AI//VD · Live mode (opcional)" data-kicker-color="blue" data-kicker-mono="true" data-panel="none" data-footer="hub"
+  data-status="v4: Margen bruto SUMX lento → perf-gate ×3 rojo → revert → verde → PROD"
+  data-notes="DEMO 3b (≈4 min, opcional). Guion: demos/GUION-DEMOS.md (Demo 3b).
+1. Aplica v4 (medida SUMX lenta) → commit → push → PR. Mientras esperamos los checks, explica qué hace perf-gate: lanza las 55 consultas del JSON de baseline contra PROD (baseline) y DEV (candidato), con 1 calentamiento + 3 ejecuciones → mediana. Regla: ratio ≥ 2× y candidato ≥ 500 ms.
+2. Perf-gate falla: Resumen ejecutivo y Producto y rentabilidad superan el ratio. deploy-prod no puede ejecutarse.
+3. Enseña el Job Summary: tabla baseline/candidato/ratio, consulta DAX más lenta con el SUMX, artifact perf-evidence.
+4. Frase clave: 'deploy-prod tiene needs: [validate, perf-gate]. Sin verde aquí, no hay PROD.'
+5. Revierte v4 → push → perf-gate vuelve a verde → merge → deploy-prod → nueva Release.">
+  <h2 class="title" style="top:5.6cqw">Demo · puerta de rendimiento</h2>
+  <div class="live-main window"><span class="wtitle">terminal · git · gh · github actions</span>
+<pre class="transcript"><span class="u">./demos/cambios/v4-medida-lenta.ps1 ; git push</span>
+  <span class="t">▶ validate → deploy-dev</span>   <span class="r">✓ Margen bruto SUMX lento en DEV</span>
+<span class="u">gh pr create --base main ; gh pr checks --watch</span>
+  <span class="t">▶ validate ✓   plan-prod ✓</span>
+  <span class="e" style="color:var(--orange)">✗ perf-gate: Resumen ejecutivo ×3.2 · Producto y rent. ×2.8</span>
+  <span class="h">   → deploy-prod bloqueado (needs: [validate, perf-gate])</span>
+<span class="u">./demos/cambios/v4-medida-lenta.ps1 -Deshacer ; git push</span>
+  <span class="t">▶ perf-gate</span>   <span class="r">✓ ratio ≤ 1.0× en todas las páginas</span>
+<span class="u">gh pr merge ; gh run watch</span>
+  <span class="t">▶ validate ✓  perf-gate ✓  deploy-prod ✓</span>  <span class="r">✓ prod-…</span></pre>
+  </div>
+  <div class="live-side"><h4>Qué enseñar</h4>
+    <ul><li>Job Summary: tabla ratio/página</li><li>Consulta DAX más lenta</li><li>Artifact <code>perf-evidence</code></li><li><code>needs: [validate, perf-gate]</code></li></ul>
+    <div class="foot">demos/GUION-DEMOS.md · Demo 3b</div></div>
 </section>
 
 <!-- 26 · VERSUS -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="diag-soft" data-footer="hub"
   data-notes="Resumen en una imagen: lo que distingue una demo bonita de un sistema real. Todo lo de la derecha lo hemos visto funcionando hoy.">
   <h2 class="title" style="top:5.6cqw">Demo bonita vs sistema real</h2>
-  <div class="vs-left"><h3>DEMO BONITA</h3><ul><li>«Publícalo» y cruzar los dedos</li><li>Credenciales en un script</li><li>Sin histórico ni entornos</li><li>Nadie sabe si los números cuadran</li></ul></div>
+  <div class="vs-left"><h3>DEMO BONITA</h3><ul><li>«Publícalo» y cruzar los dedos</li><li>Credenciales en un script</li><li>Sin histórico ni entornos</li><li>Nadie sabe si los números cuadran</li><li>Una medida lenta pasa a PROD</li></ul></div>
   <div class="vs-mark">VS</div>
-  <div class="vs-right"><h3>SISTEMA REAL</h3><ul><li>Tools deterministas y tus permisos</li><li>OIDC → az login, sin secretos</li><li>Entornos, promote y drift</li><li>Regresión y cuadre en cada PR</li></ul></div>
+  <div class="vs-right"><h3>SISTEMA REAL</h3><ul><li>Tools deterministas y tus permisos</li><li>OIDC → az login, sin secretos</li><li>Entornos, promote y drift</li><li>Regresión y cuadre en cada PR</li><li>Puerta DAX: ratio vs PROD ≥ 2× → bloqueado</li></ul></div>
 </section>
 
 <!-- 27 · COMPARATIVA -->

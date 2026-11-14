@@ -368,8 +368,14 @@ git push
 gh pr checks --watch            # perf-gate reaparece en verde
 ```
 
-Cuando `perf-gate` vuelve a verde, la PR puede mergearse (y al mergear, `deploy-prod`
-solo se ejecuta si `perf-gate` pasa, porque depende de él).
+Cuando `perf-gate` vuelve a verde puedes:
+
+```powershell
+gh pr merge --merge             # (opcional) → deploy-prod se ejecuta porque perf-gate ✓
+gh run watch                    # validate → perf-gate ✓ → deploy-prod ✓ → prod-…
+```
+
+O simplemente cerrar el PR (`gh pr close`) si solo quieres enseñar la puerta sin producir un despliegue.
 
 ### Qué mostrar en el resumen del job
 
@@ -386,6 +392,8 @@ solo se ejecuta si `perf-gate` pasa, porque depende de él).
 ./demos/reset-demo.ps1 -Yes                                  # vacía los workspaces de la demo agéntica
 ./demos/Powerbi/margen-pct.ps1 -Deshacer                     # Demo 0: quita 'Margen %' (o descarta los cambios de Desktop con git)
 #   y en el portal de AIVD Ventas Demo borra DashboardVentas; vuelve a subir Ventas (sin la medida) con el agente
+./demos/cambios/v4-medida-lenta.ps1 -Deshacer               # Demo 3b: restaura Margen bruto (si quedó aplicada)
+git status                                                   # confirma que src/Powerbi está limpio
 gh workflow run rollback-prod -f version=<tag-v1> -f target=prod
 gh workflow run rollback-prod -f version=<tag-v1> -f target=dev
 # y en git, revierte v2/v3 en dev y haz PR a main (o restaura src/Powerbi desde el tag v1)
