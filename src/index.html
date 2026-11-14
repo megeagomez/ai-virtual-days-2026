@@ -280,7 +280,7 @@ PBIX es otro camino (Import API): sube el binario y, si el nombre existe, por de
 
 <!-- 12b · DEMO AGÉNTICA CON vs SIN MCP -->
 <section class="slide" data-kicker="AI//VD · Live mode" data-kicker-color="orange" data-kicker-mono="true" data-panel="none" data-footer="hub"
-  data-status="mode: agent  ·  same prompt  ·  A: powerbi-mcp  ·  B: az + REST (no MCP)"
+  data-status="mode: agent  ·  same prompt  ·  A: powerbi-mcp-deploy (PowerBiDeploymentMCP)  ·  B: az + REST (no MCP)"
   data-notes="DEMO agéntica (≈8 min). Guion completo y prompts para copiar: demos/GUION-DEMOS.md (Demo 1).
 Mismo prompt, mismo PBIP (src/Powerbi), dos workspaces vacíos: «AIVD Demo Agente MCP» y «AIVD Demo Agente sin MCP».
 1. Lanza primero el agente SIN MCP (Claude Code con --strict-mcp-config y config vacía): tarda más, así que corre mientras hablas.
@@ -292,7 +292,7 @@ Plan B si el agente sin MCP se atasca: ./demos/sin-mcp/deploy-rest.ps1 (enséña
   <div class="live-main window"><span class="wtitle">claude · mismo prompt · dos agentes</span>
 <pre class="transcript"><span class="u">Publica el PBIP de src\Powerbi en «AIVD Demo Agente …»</span>
 <span class="u">y deja el informe enlazado al modelo de ese workspace</span>
-<span class="h">── A · con powerbi-mcp ──────────────────────────────</span>
+<span class="h">── A · con powerbi-mcp-deploy ────────────────────────</span>
   <span class="t">⚙ upload_semantic_model</span> → created
   <span class="t">⚙ upload_report(rebind_to_model)</span> → created · enlazado
   <span class="t">⚙ query_deployments</span> → quién, cuándo, desde dónde
@@ -314,7 +314,7 @@ Plan B si el agente sin MCP se atasca: ./demos/sin-mcp/deploy-rest.ps1 (enséña
   <h2 class="title wide">Mismo prompt, dos agentes</h2>
   <div class="body wide" style="top:12.6cqw">
     <table class="t">
-      <thead><tr><th>Criterio</th><th>Agente sin MCP</th><th>Agente con powerbi-mcp</th></tr></thead>
+      <thead><tr><th>Criterio</th><th>Agente sin MCP</th><th>Agente con powerbi-mcp-deploy</th></tr></thead>
       <tbody>
         <tr><td>Cómo lo hace</td><td class="wait">Improvisa scripts contra la API REST</td><td class="ok">Tools deterministas: upload_semantic_model, upload_report</td></tr>
         <tr><td>Lo que tiene que descubrir</td><td class="wait">base64, LRO, .platform, byPath → byConnection</td><td class="ok">Nada: va en la tool</td></tr>

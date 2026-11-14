@@ -40,10 +40,10 @@ claude --strict-mcp-config --mcp-config demos/sin-mcp/no-mcp.json --disallowedTo
 ```
 
 > Sin el CLI `claude` en el PATH (`npm i -g @anthropic-ai/claude-code`): abre una sesión nueva de Claude Code en VS Code,
-> `/mcp` → desactiva `powerbi`, y añade al prompt «no uses skills». Comprueba con `/mcp` que no queda ningún servidor de Power BI.
+> `/mcp` → desactiva `powerbi-mcp-deploy` y `fabric`, y añade al prompt «no uses skills». Comprueba con `/mcp` que no queda ningún servidor de Power BI ni de Fabric.
 
 ```text
-No tienes ningún servidor MCP de Power BI. Tienes una terminal con Azure CLI con sesión iniciada (az login) y permisos sobre Microsoft Fabric.
+No tienes ningún servidor MCP de Power BI ni de Fabric, y no uses skills. Tienes una terminal con Azure CLI con sesión iniciada (az login) y permisos sobre Microsoft Fabric.
 
 Publica el proyecto Power BI que está en D:\Presentaciones\2026\11. AI VirtualDAys\src\Powerbi (el modelo semántico y el informe GreatAdventuresVentas) en el workspace "AIVD Demo Agente sin MCP". El informe tiene que quedar enlazado al modelo de ese mismo workspace.
 
@@ -59,10 +59,12 @@ token de Fabric · empaquetar cada fichero en base64 · excluir `.platform` y `.
 
 ### 1B · Agente CON MCP
 
-Claude Desktop (o Claude Code / Copilot) con el servidor `powerbi` activo:
+Claude Desktop con **mi** servidor `powerbi-mcp-deploy` (PowerBiDeploymentMCP, `uvx powerbi-mcp-deployment@0.2.3`).
+En Claude Desktop también está `fabric` (el MCP de Fabric de Microsoft): **desactívalo durante la demo**
+(*Configuración → Desarrollador*, o el interruptor de herramientas del chat) para que no haya dos caminos posibles.
 
 ```text
-Usa el servidor MCP de Power BI.
+Usa únicamente el servidor MCP "powerbi-mcp-deploy" (PowerBiDeploymentMCP) y sus herramientas upload_semantic_model, upload_report, get_workspace_contents y query_deployments. No uses el servidor "fabric" ni otros MCP o skills de Microsoft.
 
 Publica el proyecto Power BI que está en D:\Presentaciones\2026\11. AI VirtualDAys\src\Powerbi (el modelo semántico y el informe GreatAdventuresVentas) en el workspace "AIVD Demo Agente MCP". El informe tiene que quedar enlazado al modelo de ese mismo workspace.
 
@@ -81,6 +83,7 @@ Esperado: `upload_semantic_model` → `upload_report` (con `rebind_to_model`) �
 Haz una copia de seguridad completa del workspace en D:\Backups\AIVD (modelos e informes en formato PBIP).
 ```
 
+En el agente con MCP, empieza cada seguimiento con «Con powerbi-mcp-deploy: …».
 Con MCP: `query_deployments` / `query_version_history` y `download_workspace`. Sin MCP: o no lo sabe, o improvisa otro script.
 
 ### 1D · Marcador (rellénalo en directo, diapo 14)
@@ -187,6 +190,7 @@ git push                                     # y PR a main como siempre
 ### Opcional · que lo pida el agente
 
 ```text
+Usa gh (GitHub CLI) sobre el repo megeagomez/ai-virtual-days-2026, no ningún MCP de Fabric.
 Lista las versiones publicadas en PROD (releases prod-*), dime cuál fue la última sin el cambio de "Ventas netas" y restaura PROD a esa versión con el workflow rollback-prod. Avísame cuando termine.
 ```
 
